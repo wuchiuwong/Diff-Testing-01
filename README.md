@@ -35,6 +35,11 @@ False negative about pattern implementation | P7. Fail in variables | PMD: Final
 False negative about pattern implementation | P7. Fail in variables | PMD: AvoidDecimalLiteralsInBigDecimalConstructor | [issue link](https://github.com/pmd/pmd/issues/2532) | await confirmation
 False negative about pattern implementation | Others  | PMD: AvoidThrowingNullPointerException | [issue link](https://github.com/pmd/pmd/issues/2533) | await confirmation
 False negative about pattern implementation | Others  | PMD: StringToString  | [issue link](https://github.com/pmd/pmd/issues/2530) | await confirmation
+False negative about pattern implementation | 表4漏了 | PMD: ClassWithOnlyPrivateConstructorsShouldBeFinal | [issue link](https://github.com/pmd/pmd/issues/2536) | await confirmation
+False negative about pattern implementation | 表4漏了 | PMD: UnnecessaryCaseChange | [issue link](https://github.com/pmd/pmd/issues/2531) | await confirmation
+False negative about pattern implementation | 表4漏了 | Sonarqube: Catches should be combined | [issue link](https://community.sonarsource.com/t/false-negative-s2147-can-not-detect-exceptions-variable-names-are-different-but-processing-of-exceptions-are-exactly-the-same/26318) | await confirmation
+False negative about pattern implementation | 表4漏了（这个讨论） | ErrorProne: EqualsHashCode | [issue link](这个讨论) | 这个讨论
+False negative about pattern implementation | 表4漏了 | SpotBugs: HE_EQUALS_USE_HASHCODE | [issue link](https://github.com/spotbugs/spotbugs/issues/1142) | await confirmation
 
 ## TABLE 2: False negative bugs (about rule definition) in the examined static bug finders.
 Type | Bug pattern | Involved rules | issue url | status(fixed/confirmed, await confirmation)
