@@ -10,21 +10,16 @@ False negative about pattern implementation | P1. Fail in special data type | Sp
 False negative about pattern implementation | P2. Fail in compound expression | ErrorProne: ToStringReturnsNull  | [issue link](https://github.com/google/error-prone/issues/1659) | await confirmation
 False negative about pattern implementation | P2. Fail in compound expression | SpotBugs: QBA_QUESTIONABLE_BOOLEAN_ASSIGNMENT  | [issue link](https://github.com/spotbugs/spotbugs/issues/1149) | await confirmation
 False negative about pattern implementation | P2. Fail in compound expression | SpotBugs: SA_LOCAL_SELF_ASSIGNMENT | [issue link](https://github.com/spotbugs/spotbugs/issues/1145) | await confirmation
-False negative about pattern implementation | P2. Fail in compound expression | SpotBugs: SA_LOCAL_SELF_ASSIGNMENT | [issue link](https://github.com/spotbugs/spotbugs/issues/1144) | await confirmation
 False negative about pattern implementation | P2. Fail in compound expression | SonarQube: Variables should not be self-assigned | [issue link](https://community.sonarsource.com/t/false-negative-s1656-can-not-detect-static-variables-self-assigned-in-a-special-case-foo-foo-bar/26317) | await confirmation
 False negative about pattern implementation | P2. Fail in compound expression | SonarQube: Fields should not be initialized to default values  | [issue link](https://community.sonarsource.com/t/false-negative-s3052-can-not-detect-assignment-which-right-statement-has-a-type-conversion/26047) | await confirmation
 False negative about pattern implementation | P3. Fail in implicit operation | ErrorProne: IntLongMath | [issue link](https://github.com/google/error-prone/issues/1663) | confirmed
-False negative about pattern implementation | P3. Fail in implicit operation | ErrorProne: IntLongMath | [issue link](https://github.com/google/error-prone/issues/1662) | confirmed
 False negative about pattern implementation | P3. Fail in implicit operation | SonarQube: Static fields should not be updated in constructors | [issue link](https://community.sonarsource.com/t/false-negative-s3010-can-not-detect-static-variables-updated-by/26049) | confirmed?
 False negative about pattern implementation | P3. Fail in implicit operation | SpotBugs: DMI_INVOKING_TOSTRING_ON_ARRAY  | [issue link](https://github.com/spotbugs/spotbugs/issues/1147) | await confirmation
 False negative about pattern implementation | P3. Fail in implicit operation | ErrorProne: ArrayEquals  | [issue link](https://github.com/google/error-prone/issues/1658) | await confirmation
 False negative about pattern implementation | P4. Fail in multiple calling operations | PMD: UseCollectionIsEmpty  | [issue link](https://github.com/pmd/pmd/issues/2543) | await confirmation
-False negative about pattern implementation | P4. Fail in multiple calling operations | PMD: UseCollectionIsEmpty  | [issue link](https://github.com/pmd/pmd/issues/2542) | await confirmation
 False negative about pattern implementation | P4. Fail in multiple calling operations | PMD: AvoidPrintStackTrace  | [issue link](https://github.com/pmd/pmd/issues/2437) | confirmed
 False negative about pattern implementation | P4. Fail in multiple calling operations | PMD: ClassCastExceptionWithToArray  | [issue link](https://github.com/pmd/pmd/issues/2535) | await confirmation
-False negative about pattern implementation | P4. Fail in multiple calling operations | PMD: ClassCastExceptionWithToArray  | [issue link](https://github.com/pmd/pmd/issues/2534) | await confirmation
 False negative about pattern implementation | P4. Fail in multiple calling operations | PMD: DontCallThreadRun  | [issue link](https://github.com/pmd/pmd/issues/2538) | await confirmation
-False negative about pattern implementation | P4. Fail in multiple calling operations | PMD: DontCallThreadRun  | [issue link](https://github.com/pmd/pmd/issues/2537) | await confirmation
 False negative about pattern implementation | P5. Fail in separated expressions | PMD: UseProperClassLoader  | [issue link](https://github.com/pmd/pmd/issues/2544) | confirmed
 False negative about pattern implementation | P5. Fail in separated expressions | ErrorProne: ToStringReturnsNull  | [issue link](https://github.com/google/error-prone/issues/1660) | confirmed
 False negative about pattern implementation | P5. Fail in separated expressions | PMD: InstantiationToGetClass  | [issue link](https://github.com/pmd/pmd/issues/2539) | await confirmation
@@ -35,11 +30,7 @@ False negative about pattern implementation | P7. Fail in variables | PMD: Final
 False negative about pattern implementation | P7. Fail in variables | PMD: AvoidDecimalLiteralsInBigDecimalConstructor | [issue link](https://github.com/pmd/pmd/issues/2532) | await confirmation
 False negative about pattern implementation | Others  | PMD: AvoidThrowingNullPointerException | [issue link](https://github.com/pmd/pmd/issues/2533) | await confirmation
 False negative about pattern implementation | Others  | PMD: StringToString  | [issue link](https://github.com/pmd/pmd/issues/2530) | await confirmation
-False negative about pattern implementation | 表4漏了 | PMD: ClassWithOnlyPrivateConstructorsShouldBeFinal | [issue link](https://github.com/pmd/pmd/issues/2536) | await confirmation
-False negative about pattern implementation | 表4漏了 | PMD: UnnecessaryCaseChange | [issue link](https://github.com/pmd/pmd/issues/2531) | await confirmation
-False negative about pattern implementation | 表4漏了 | Sonarqube: Catches should be combined | [issue link](https://community.sonarsource.com/t/false-negative-s2147-can-not-detect-exceptions-variable-names-are-different-but-processing-of-exceptions-are-exactly-the-same/26318) | await confirmation
-False negative about pattern implementation | 表4漏了（这个讨论） | ErrorProne: EqualsHashCode | [issue link](这个讨论) | 这个讨论
-False negative about pattern implementation | 表4漏了 | SpotBugs: HE_EQUALS_USE_HASHCODE | [issue link](https://github.com/spotbugs/spotbugs/issues/1142) | await confirmation
+False negative about pattern implementation | Others  | PMD: SimplifyBooleanExpressions  | [issue link](https://github.com/pmd/pmd/issues/2585) | confirmed
 
 ## TABLE 2: False negative bugs (about rule definition) in the examined static bug finders.
 Type | Bug pattern | Involved rules | issue url | status(fixed/confirmed, await confirmation)
@@ -49,20 +40,14 @@ False negative bugs about rule definition | P8. Miss comparable method | ErrorPr
 False negative bugs about rule definition | P8. Miss comparable method | SonarQube: Java.lang.Error should not be extended | [issue link](https://community.sonarsource.com/t/suggestion-let-rule-s1194-detect-more-specific-errors-is-recommended/26163) | confirmed
 False negative bugs about rule definition | P8. Miss comparable method | SonarQube: Execution of the Garbage Collector should be triggered only by the JVM  | [issue link](https://community.sonarsource.com/t/suggestion-let-rule-s1215-detect-case-system-runfinalization-is-recommended/26162) | await confirmation
 False negative bugs about rule definition | P9. Miss comparable data type or operation | SonarQube: Redundant modifiers should not be used | [issue link](https://community.sonarsource.com/t/suggestion-let-rule-s2333-detect-redundant-modifiers-of-interface-is-recommended/26232) | await confirmation
-False negative bugs about rule definition | P9. Miss comparable data type or operation | SonarQube: Redundant modifiers should not be used | [issue link](https://community.sonarsource.com/t/suggestion-let-rule-s2333-detect-redundant-modifiers-of-enum-is-recommended/26164) | await confirmation
-False negative bugs about rule definition | P9. Miss comparable data type or operation | SonarQube: Non-primitive fields should not be volatile  | [issue link](这个没发) | 这个没发，要讨论一下有没有问题
 False negative bugs about rule definition | P9. Miss comparable data type or operation | PMD: AvoidArrayLoops  | [issue link](https://github.com/pmd/pmd/issues/2587) | await confirmation
 False negative bugs about rule definition | P9. Miss comparable data type or operation | SpotBugs: ICAST_INTEGER_MULTIPLY_CAST_TO_LONG  | [issue link](https://github.com/spotbugs/spotbugs/issues/1146) | await confirmation
 False negative bugs about rule definition | P10. Miss subclass or superclass | PMD: ReturnEmptyArrayRatherThanNull  | [issue link](https://github.com/pmd/pmd/issues/2588) | await confirmation
 False negative bugs about rule definition | P10. Miss subclass or superclass | PMD: AvoidCatchingThrowable  | [issue link](https://github.com/pmd/pmd/issues/2583) | await confirmation
-False negative bugs about rule definition | 表5漏了，取消 | PMD: NonStaticInitializer  | [issue link](https://github.com/pmd/pmd/issues/2586) | reject
-False negative bugs about rule definition | 表5漏了 | PMD: SimplifyBooleanExpressions  | [issue link](https://github.com/pmd/pmd/issues/2585) | confirmed
-False negative bugs about rule definition | 表5漏了，取消 | PMD: SimplifyBooleanExpressions  | [issue link](https://github.com/pmd/pmd/issues/2581) | reject
 
 ## TABLE 3: False positive bugs in the examined static bug finders
 Type | Bug pattern | Involved rules | issue url | status(fixed/confirmed, await confirmation)
 :-: | :-: | :-: | :-: | :-:
-False positive bugs in the examined static bug finders | P11. Poor handling of method with same name | PMD: SuspiciousEqualsMethodName  | [issue link](这个没发) | 这个没发，要讨论一下有没有问题
 False positive bugs in the examined static bug finders | P11. Poor handling of method with same name | PMD: UseNotifyAllInsteadOfNotify  | [issue link](https://github.com/pmd/pmd/issues/2577) | await confirmation
 False positive bugs in the examined static bug finders | P11. Poor handling of method with same name | SonarQube: Object.finalize() should remain protected (versus public) when overriding  | [issue link](https://community.sonarsource.com/t/false-positive-s1174-detected-override-of-finalize-with-arguments/26364) | await confirmation
 False positive bugs in the examined static bug finders | P12. Setting over-sized scope | PMD: AvoidThrowingNullPointerException | [issue link](https://github.com/pmd/pmd/issues/2580) | await confirmation
