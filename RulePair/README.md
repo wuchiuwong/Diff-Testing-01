@@ -1,3 +1,2 @@
-# Diff-Testing-01
-## TABLE 1: False negative bugs (about pattern implementation) in the examined static bug finders
-test test
+## Sonarqube and PMD: 74 Rule Pair
+## ErrorProne and SpotBugs: 30 Rule Pair
