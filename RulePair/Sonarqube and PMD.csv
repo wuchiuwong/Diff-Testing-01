@@ -1,0 +1,2011 @@
+﻿Sonarqube_RuleId,PMD_RuleId,Sonarqube_RuleDescription,PMD_RuleDescription
+S1153,UselessStringValueOf,"String.valueOf() should not be appended to a String
+ Appending String.valueOf() to a String decreases the code readability. The argument passed to String.valueOf() should be directly appended instead.  
+
+public void display(int i){
+  System.out.println(""Output is "" + String.valueOf(i));    // Noncompliant
+}
+public void display(int i){
+  System.out.println(""Output is "" + i);                    // Compliant
+}","UselessStringValueOf
+No need to call String.valueOf to append to a string; just use the valueOf() argument directly.  
+public String convert(int i) {
+    String s;
+    s = ""a"" + String.valueOf(i);    // not required
+    s = ""a"" + i;                    // preferred approach
+    return s;
+}
+"
+S1111,AvoidCallingFinalize,"The Object.finalize() method should not be called
+ According to the official javadoc documentation, this Object.finalize() is called by the garbage collector on an object when garbage collection determines that there are no more references to the object. Calling this method explicitly breaks this contract and so is misleading.  See  - Explicit Call to Finalize() - Do not use finalizers 
+
+public void dispose() throws Throwable {
+  this.finalize();                       // Noncompliant
+}","AvoidCallingFinalize
+The method Object.finalize() is called by the garbage collector on an object when garbage collection determines that there are no more references to the object. It should not be invoked by application logic.  Note that Oracle has declared Object.finalize() as deprecated since JDK 9.  
+void foo() {
+    Bar b = new Bar();
+    b.finalize();
+}
+"
+S1114,FinalizeDoesNotCallSuperFinalize,"""super.finalize()"" should be called at the end of ""Object.finalize()"" implementations
+ Overriding the Object.finalize() method must be done with caution to dispose some system resources. Calling the super.finalize() at the end of this method implementation is highly recommended in case parent implementations must also dispose some system resources.   See  - finalize() Method Without super.finalize() - Do not use finalizers 
+
+protected void finalize() {   // Noncompliant; no call to super.finalize();
+  releaseSomeResources();
+}
+
+protected void finalize() {
+  super.finalize();  // Noncompliant; this call should come last
+  releaseSomeResources();
+}
+protected void finalize() {
+  releaseSomeResources();
+  super.finalize();
+}","FinalizeDoesNotCallSuperFinalize
+If the finalize() is implemented, its last action should be to call super.finalize. Note that Oracle has declared Object.finalize() as deprecated since JDK 9.  
+protected void finalize() {
+    something();
+    // neglected to call super.finalize()
+}
+"
+S2093,UseTryWithResources,"Try-with-resources should be used
+ Java 7 introduced the try-with-resources statement, which guarantees that the resource in question will be closed. Since the new syntax is closer to bullet-proof, it should be preferred over the older try/catch/finally version. This rule checks that close-able resources are opened in a try-with-resources statement. Note that this rule is automatically disabled when the project's sonar.java.source is lower than 7.   or See  - Use a try-with-resources statement to safely handle closeable resources 
+
+FileReader fr = null;
+BufferedReader br = null;
+try {
+  fr = new FileReader(fileName);
+  br = new BufferedReader(fr);
+  return br.readLine();
+} catch (...) {
+} finally {
+  if (br != null) {
+    try {
+      br.close();
+    } catch(IOException e){...}
+  }
+  if (fr != null ) {
+    try {
+      br.close();
+    } catch(IOException e){...}
+  }
+}
+try (
+    FileReader fr = new FileReader(fileName);
+    BufferedReader br = new BufferedReader(fr)
+  ) {
+  return br.readLine();
+}
+catch (...) {}
+try (BufferedReader br =
+        new BufferedReader(new FileReader(fileName))) { // no need to name intermediate resources if you don't want to
+  return br.readLine();
+}
+catch (...) {}","UseTryWithResources
+Java 7 introduced the try-with-resources statement. This statement ensures that each resource is closed at the end of the statement. It avoids the need of explicitly closing the resources in a finally block. Additionally exceptions are better handled: If an exception occurred both in the try block and finally block, then the exception from the try block was suppressed. With the try-with-resources statement, the exception thrown from the try-block is preserved.  
+public class TryWithResources {
+    public void run() {
+        InputStream in = null;
+        try {
+            in = openInputStream();
+            int i = in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (in != null) in.close();
+            } catch (IOException ignored) {
+                // ignored
+            }
+        }
+        // better use try-with-resources
+        try (InputStream in2 = openInputStream()) {
+            int i = in2.read();
+        }
+    }
+}
+"
+S1858,StringToString,"""toString()"" should never be called on a String object
+ Invoking a method designed to return a string representation of an object which is already a string is a waste of keystrokes. This redundant construction may be optimized by the compiler, but will be confusing in the meantime.  
+
+String message = ""hello world"";
+System.out.println(message.toString()); // Noncompliant;
+String message = ""hello world"";
+System.out.println(message);","StringToString
+Avoid calling toString() on objects already known to be string instances; this is unnecessary.  
+private String baz() {
+    String bar = ""howdy"";
+    return bar.toString();
+}
+"
+S1192,AvoidDuplicateLiterals,"String literals should not be duplicated
+ Duplicated string literals make the process of refactoring error-prone, since you must be sure to update all occurrences. On the other hand, constants can be referenced from many places, but only need to be updated in a single place.  With the default threshold of 3:  Exceptions To prevent generating some false-positives, literals having less than 5 characters are excluded.
+
+public void run() {
+  prepare(""action1"");                              // Noncompliant - ""action1"" is duplicated 3 times
+  execute(""action1"");
+  release(""action1"");
+}
+
+@SuppressWarning(""all"")                            // Compliant - annotations are excluded
+private void method1() { /* ... */ }
+@SuppressWarning(""all"")
+private void method2() { /* ... */ }
+
+public String method3(String a) {
+  System.out.println(""'"" + a + ""'"");               // Compliant - literal ""'"" has less than 5 characters and is excluded
+  return """";                                       // Compliant - literal """" has less than 5 characters and is excluded
+}
+private static final String ACTION_1 = ""action1"";  // Compliant
+
+public void run() {
+  prepare(ACTION_1);                               // Compliant
+  execute(ACTION_1);
+  release(ACTION_1);
+}","AvoidDuplicateLiterals
+Code containing duplicate String literals can usually be improved by declaring the String as a constant field.  
+private void bar() {
+     buz(""Howdy"");
+     buz(""Howdy"");
+     buz(""Howdy"");
+     buz(""Howdy"");
+}
+private void buz(String x) {}
+"
+S2133,InstantiationToGetClass,"Objects should not be created only to ""getClass""
+ Creating an object for the sole purpose of calling getClass on it is a waste of memory and cycles. Instead, simply use the class' .class property.  
+
+MyObject myOb = new MyObject();  // Noncompliant
+Class c = myOb.getClass();
+Class c = MyObject.class;","InstantiationToGetClass
+Avoid instantiating an object just to call getClass() on it; use the .class public member instead.  
+// replace this
+Class c = new String().getClass();
+// with this:
+Class c = String.class;
+"
+S1201,SuspiciousEqualsMethodName,"""equals"" method overrides should accept ""Object"" parameters
+ ""equals"" as a method name should be used exclusively to override Object.equals(Object) to prevent any confusion. It is tempting to overload the method to take a specific class instead of Object as parameter, to save the class comparison check. However, this will not work as expected when that is the only override.  
+
+class MyClass {
+  private int foo = 1;
+
+  public boolean equals(MyClass o) {  // Noncompliant; does not override Object.equals(Object)
+    return o != null &amp;&amp; o.foo == this.foo;
+  }
+
+  public static void main(String[] args) {
+    MyClass o1 = new MyClass();
+    Object o2 = new MyClass();
+    System.out.println(o1.equals(o2));  // Prints ""false"" because o2 an Object not a MyClass
+  }
+}
+
+class MyClass2 {
+  public boolean equals(MyClass2 o) {  // Ignored; `boolean equals(Object)` also present
+    //..
+  }
+
+  public boolean equals(Object o) {
+    //...
+  }
+}
+class MyClass {
+  private int foo = 1;
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+        return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    MyClass other = (MyClass)o;
+    return this.foo == other.foo;
+  }
+
+  /* ... */
+}
+
+class MyClass2 {
+  public boolean equals(MyClass2 o) {
+    //..
+  }
+
+  public boolean equals(Object o) {
+    //...
+  }
+}","SuspiciousEqualsMethodName
+The method name and parameter number are suspiciously close to equals(Object), which can denote an intention to override the equals(Object) method.  
+public class Foo {
+   public int equals(Object o) {
+     // oops, this probably was supposed to be boolean equals
+   }
+   public boolean equals(String s) {
+     // oops, this probably was supposed to be equals(Object)
+   }
+   public boolean equals(Object o1, Object o2) {
+     // oops, this probably was supposed to be equals(Object)
+   }
+}
+"
+S2111,AvoidDecimalLiteralsInBigDecimalConstructor,"""BigDecimal(double)"" should not be used
+ Because of floating point imprecision, you're unlikely to get the value you expect from the BigDecimal(double) constructor. From :  The results of this constructor can be somewhat unpredictable. One might assume that writing new BigDecimal(0.1) in Java creates a BigDecimal which is exactly equal to 0.1 (an unscaled value of 1, with a scale of 1), but it is actually equal to 0.1000000000000000055511151231257827021181583404541015625. This is because 0.1 cannot be represented exactly as a double (or, for that matter, as a binary fraction of any finite length). Thus, the value that is being passed in to the constructor is not exactly equal to 0.1, appearances notwithstanding.  Instead, you should use BigDecimal.valueOf, which uses a string under the covers to eliminate floating point rounding errors, or the constructor that takes a String argument.   See  - Do not construct BigDecimal objects from floating-point literals 
+
+double d = 1.1;
+
+BigDecimal bd1 = new BigDecimal(d); // Noncompliant; see comment above
+BigDecimal bd2 = new BigDecimal(1.1); // Noncompliant; same result
+double d = 1.1;
+
+BigDecimal bd1 = BigDecimal.valueOf(d);
+BigDecimal bd2 = new BigDecimal(""1.1""); // using String constructor will result in precise value","AvoidDecimalLiteralsInBigDecimalConstructor
+One might assume that the result of ""new BigDecimal(0.1)"" is exactly equal to 0.1, but it is actually equal to .1000000000000000055511151231257827021181583404541015625. This is because 0.1 cannot be represented exactly as a double (or as a binary fraction of any finite length). Thus, the long value that is being passed in to the constructor is not exactly equal to 0.1, appearances notwithstanding.  The (String) constructor, on the other hand, is perfectly predictable: ‘new BigDecimal(""0.1"")’ is exactly equal to 0.1, as one would expect.  Therefore, it is generally recommended that the (String) constructor be used in preference to this one.  
+BigDecimal bd = new BigDecimal(1.123);       // loss of precision, this would trigger the rule
+BigDecimal bd = new BigDecimal(""1.123"");     // preferred approach
+BigDecimal bd = new BigDecimal(12);          // preferred approach, ok for integer values
+"
+S1157,UnnecessaryCaseChange,"Case insensitive string comparisons should be made without intermediate upper or lower casing
+ Using toLowerCase() or toUpperCase() to make case insensitive comparisons is inefficient because it requires the creation of temporary, intermediate String objects.   Exceptions No issue will be raised when a locale is specified because the result could be different from ""equalsIgnoreCase"". (e.g.: using the Turkish locale)
+
+boolean result1 = foo.toUpperCase().equals(bar);             // Noncompliant
+boolean result2 = foo.equals(bar.toUpperCase());             // Noncompliant
+boolean result3 = foo.toLowerCase().equals(bar.LowerCase()); // Noncompliant
+boolean result = foo.equalsIgnoreCase(bar);                  // Compliant
+boolean result1 = foo.toUpperCase(locale).equals(bar);             // Compliant","UnnecessaryCaseChange
+Using equalsIgnoreCase() is faster than using toUpperCase/toLowerCase().equals()  
+boolean answer1 = buz.toUpperCase().equals(""baz"");              // should be buz.equalsIgnoreCase(""baz"")
+boolean answer2 = buz.toUpperCase().equalsIgnoreCase(""baz"");    // another unnecessary toUpperCase()
+"
+S1695,AvoidThrowingNullPointerException,"""NullPointerException"" should not be explicitly thrown
+ A NullPointerException should indicate that a null value was unexpectedly encountered. Good programming practice dictates that code is structured to avoid NPE's. Explicitly throwing NullPointerException forces a method's callers to explicitly catch it, rather than coding to avoid it. Further, it makes it difficult to distinguish between the unexpectedly-encountered null value and the condition which causes the method to purposely throw an NPE. If an NPE is being thrown to indicate that a parameter to the method should not have been null, use the @NotNull annotation instead.  
+
+public void doSomething (String aString) throws NullPointerException {
+     throw new NullPointerException();
+}
+public void doSomething (@NotNull String aString) {
+}","AvoidThrowingNullPointerException
+Avoid throwing NullPointerExceptions manually. These are confusing because most people will assume that the virtual machine threw it.  To avoid a method being called with a null parameter, you may consider using an IllegalArgumentException instead, making it clearly seen as a programmer-initiated exception. However, there are better ways to handle this:     Effective Java, 3rd Edition, Item 72: Favor the use of standard exceptions    Arguably, every erroneous method invocation boils down to an illegal argument or state, but other exceptions are standardly used for certain kinds of illegal arguments and states. If a caller passes null in some parameter for which null values are prohibited, convention dictates that NullPointerException be thrown rather than IllegalArgumentException.   To implement that, you are encouraged to use java.util.Objects.requireNonNull() (introduced in Java 1.7). This method is designed primarily for doing parameter validation in methods and constructors with multiple parameters.  Your parameter validation could thus look like the following: public class Foo {     private String exampleValue;      void setExampleValue(String exampleValue) {       // check, throw and assignment in a single standard call       this.exampleValue = Objects.requireNonNull(exampleValue, ""exampleValue must not be null!"");     }   }   
+public class Foo {
+    void bar() {
+        throw new NullPointerException();
+    }
+}
+"
+S1219,NonCaseLabelInSwitchStatement,"""switch"" statements should not contain non-case labels
+ Even if it is legal, mixing case and non-case labels in the body of a switch statement is very confusing and can even be the result of a typing error.  
+
+switch (day) {
+  case MONDAY:
+  case TUESDAY:
+  WEDNESDAY:   // Noncompliant; syntactically correct, but behavior is not what's expected
+    doSomething();
+    break;
+  ...
+}
+
+switch (day) {
+  case MONDAY:
+    break;
+  case TUESDAY:
+    foo:for(int i = 0 ; i &lt; X ; i++) {  // Noncompliant; the code is correct and behaves as expected but is barely readable
+         /* ... */
+        break foo;  // this break statement doesn't relate to the nesting case TUESDAY
+         /* ... */
+    }
+    break;
+    /* ... */
+}
+switch (day) {
+  case MONDAY:
+  case TUESDAY:
+  case WEDNESDAY:
+    doSomething();
+    break;
+  ...
+}
+
+switch (day) {
+  case MONDAY:
+    break;
+  case TUESDAY:
+    compute(args); // put the content of the labelled ""for"" statement in a dedicated method
+    break;
+
+    /* ... */
+}","NonCaseLabelInSwitchStatement
+A non-case label (e.g. a named break/continue label) was present in a switch statement. This legal, but confusing. It is easy to mix up the case labels and the non-case labels.  
+public class Foo {
+  void bar(int a) {
+   switch (a) {
+     case 1:
+       // do something
+       break;
+     mylabel: // this is legal, but confusing!
+       break;
+     default:
+       break;
+    }
+  }
+}
+"
+S1168,ReturnEmptyArrayRatherThanNull,"Empty arrays and collections should be returned instead of null
+ Returning null instead of an actual array or collection forces callers of the method to explicitly test for nullity, making them more complex and less readable. Moreover, in many cases, null is used as a synonym for empty.   See  - For functions that return an array, prefer returning an empty array over a null value - Return an empty array or collection instead of a null value for methods that return an array or collection 
+
+public static List&lt;Result&gt; getResults() {
+  return null;                             // Noncompliant
+}
+
+public static Result[] getResults() {
+  return null;                             // Noncompliant
+}
+
+public static void main(String[] args) {
+  Result[] results = getResults();
+
+  if (results != null) {                   // Nullity test required to prevent NPE
+    for (Result result: results) {
+      /* ... */
+    }
+  }
+}
+
+public static List&lt;Result&gt; getResults() {
+  return Collections.emptyList();          // Compliant
+}
+
+public static Result[] getResults() {
+  return new Result[0];
+}
+
+public static void main(String[] args) {
+  for (Result result: getResults()) {
+    /* ... */
+  }
+}","ReturnEmptyArrayRatherThanNull
+For any method that returns an array, it is a better to return an empty array rather than a null reference. This removes the need for null checking all results and avoids inadvertent NullPointerExceptions.  
+public class Example {
+    // Not a good idea...
+    public int[] badBehavior() {
+        // ...
+        return null;
+    }
+    // Good behavior
+    public String[] bonnePratique() {
+        //...
+        return new String[0];
+    }
+}
+"
+S3012,AvoidArrayLoops,"Arrays should not be copied using loops
+ Using a loop to copy an array or a subset of an array is simply wasted code when there are built-in functions to do it for you. Instead, use Arrays.copyOf to copy an entire array into another array, use System.arraycopy to copy only a subset of an array into another array, and use Arrays.asList to feed the constructor of a new list with an array. Note that Arrays.asList simply puts a Collections wrapper around the original array, so further steps are required if a non-fixed-size List is desired.   Exceptions Rule detects only the most idiomatic patterns, it will not consider loops with non-trivial control flow. For example, array elements that are copied conditionally are ignored.
+
+public void makeCopies(String[] source) {
+
+  this.array = new String[source.length];
+  this.list = new ArrayList(source.length);
+
+  for (int i = 0; i &lt; source.length; i++) {
+    this.array[i] = source[i]; // Noncompliant
+  }
+
+  for (String s : source) {
+    this.list.add(s); // Noncompliant
+  }
+}
+public void makeCopies(String[] source) {
+  this.array = Arrays.copyOf(source, source.length);
+  Collections.addAll(this.list, source);
+}
+public int[] getCopy(int[] source) {
+  int[] dest = new int[source.length];
+  for (int i = 0; i &lt; source.length; i++) {
+    if (source[i] &gt; 10) {
+      dest[i] = source[i];  // Compliant
+    }
+  }
+  return dest;
+}","AvoidArrayLoops
+Instead of manually copying data between two arrays, use the efficient Arrays.copyOf or System.arraycopy method instead.  
+public class Test {
+    public void bar() {
+        int[] a = new int[10];
+        int[] b = new int[10];
+        for (int i=0;i&lt;10;i++) {
+            b[i]=a[i];
+        }
+        int[] c = new int[10];
+        // this will trigger the rule
+        for (int i=0;i&lt;10;i++) {
+            b[i]=a[c[i]];
+        }
+    }
+}
+"
+S4201,SimplifyConditional,"Null checks should not be used with ""instanceof""
+ There's no need to null test in conjunction with an instanceof test. null is not an instanceof anything, so a null check is redundant.  
+
+if (x != null &amp;&amp; x instanceof MyClass) { ... }  // Noncompliant
+
+if (x == null || ! x instanceof MyClass) { ... } // Noncompliant
+if (x instanceof MyClass) { ... }
+
+if (! x instanceof MyClass) { ... }","SimplifyConditional
+No need to check for null before an instanceof; the instanceof keyword returns false when given a null argument.  
+class Foo {
+  void bar(Object x) {
+    if (x != null &amp;&amp; x instanceof Bar) {
+      // just drop the ""x != null"" check
+    }
+  }
+}
+"
+S1314,AvoidUsingOctalValues,"Octal values should not be used
+ Integer literals starting with a zero are octal rather than decimal values. While using octal values is fully supported, most developers do not have experience with them. They may not recognize octal values as such, mistaking them instead for decimal values.   See  - Do not begin integer constants with 0 when specifying a decimal value - Use visually distinct identifiers 
+
+int myNumber = 010;   // Noncompliant. myNumber will hold 8, not 10 - was this really expected?
+int myNumber = 8;","AvoidUsingOctalValues
+Integer literals should not start with zero since this denotes that the rest of literal will be interpreted as an octal value.  
+int i = 012;    // set i with 10 not 12
+int j = 010;    // set j with 8 not 10
+k = i * j;      // set k with 80 not 120
+"
+S3030,TooManyStaticImports,"Classes should not have too many ""static"" imports
+ Importing a class statically allows you to use its public static members without qualifying them with the class name. That can be handy, but if you import too many classes statically, your code can become confusing and difficult to maintain.  With the default threshold value: 4
+
+import static java.lang.Math.*;
+import static java.util.Collections.*;
+import static com.myco.corporate.Constants.*;
+import static com.myco.division.Constants.*;
+import static com.myco.department.Constants.*;  // Noncompliant","TooManyStaticImports
+If you overuse the static import feature, it can make your program unreadable and unmaintainable, polluting its namespace with all the static members you import. Readers of your code (including you, a few months after you wrote it) will not know which class a static member comes from (Sun 1.5 Language Guide).  
+import static Lennon;
+import static Ringo;
+import static George;
+import static Paul;
+import static Yoko; // Too much !
+"
+S1172,UnusedFormalParameter,"Unused method parameters should be removed
+ Unused parameters are misleading. Whatever the values passed to such parameters, the behavior will be the same.   Exceptions The rule will not raise issues for unused parameters:  that are annotated with @javax.enterprise.event.Observes in overrides and implementation methods in interface default methods in non-private methods that only throw or that have empty bodies in annotated methods, unless the annotation is @SuppressWarning(""unchecked"") or @SuppressWarning(""rawtypes""), in which case the annotation will be ignored in overridable methods (non-final, or not member of a final class, non-static, non-private), if the parameter is documented with a proper javadoc.  See  - Detect and remove code that has no effect or is never executed 
+
+void doSomething(int a, int b) {     // ""b"" is unused
+  compute(a);
+}
+void doSomething(int a) {
+  compute(a);
+}
+@Override
+void doSomething(int a, int b) {     // no issue reported on b
+  compute(a);
+}
+
+public void foo(String s) {
+  // designed to be extended but noop in standard case
+}
+
+protected void bar(String s) {
+  //open-closed principle
+}
+
+public void qix(String s) {
+  throw new UnsupportedOperationException(""This method should be implemented in subclasses"");
+}
+
+/**
+ * @param s This string may be use for further computation in overriding classes
+ */
+protected void foobar(int a, String s) { // no issue, method is overridable and unused parameter has proper javadoc
+  compute(a);
+}","UnusedFormalParameter
+Avoid passing parameters to methods or constructors without actually referencing them in the method body. Removing unused formal parameters from public methods could cause a ripple effect through the code base. Hence, by default, this rule only considers private methods. To include non-private methods, set the checkAll property to true.  
+public class Foo {
+    private void bar(String howdy) {
+        // howdy is not used
+    }
+}
+"
+S128,MissingBreakInSwitch,"Switch cases should end with an unconditional ""break"" statement
+ When the execution is not explicitly terminated at the end of a switch case, it continues to execute the statements of the following case. While this is sometimes intentional, it often is a mistake which leads to unexpected behavior.   Exceptions This rule is relaxed in the following cases: See  - Omitted Break Statement in Switch - Finish every set of statements associated with a case label with a break statement - Finish every set of statements associated with a case label with a break statement 
+
+switch (myVariable) {
+  case 1:
+    foo();
+    break;
+  case 2:  // Both 'doSomething()' and 'doSomethingElse()' will be executed. Is it on purpose ?
+    doSomething();
+  default:
+    doSomethingElse();
+    break;
+}
+switch (myVariable) {
+  case 1:
+    foo();
+    break;
+  case 2:
+    doSomething();
+    break;
+  default:
+    doSomethingElse();
+    break;
+}
+switch (myVariable) {
+  case 0:                                // Empty case used to specify the same behavior for a group of cases.
+  case 1:
+    doSomething();
+    break;
+  case 2:                                // Use of return statement
+    return;
+  case 3:                                // Use of throw statement
+    throw new IllegalStateException();
+  case 4:                                // Use of continue statement
+    continue;
+  default:                               // For the last case, use of break statement is optional
+    doSomethingElse();
+}","MissingBreakInSwitch
+Switch statements without break or return statements for each case option may indicate problematic behaviour. Empty cases are ignored as these indicate an intentional fall-through.  
+public void bar(int status) {
+    switch(status) {
+      case CANCELLED:
+        doCancelled();
+        // break; hm, should this be commented out?
+      case NEW:
+        doNew();
+        // is this really a fall-through?
+      case REMOVED:
+        doRemoved();
+        // what happens if you add another case after this one?
+      case OTHER: // empty case - this is interpreted as an intentional fall-through
+      case ERROR:
+        doErrorHandling();
+        break;
+    }
+}
+"
+S1942,UnnecessaryFullyQualifiedName,"Simple class names should be used
+ Java's import mechanism allows the use of simple class names. Therefore, using a class' fully qualified name in a file that imports the class is redundant and confusing.  
+
+import java.util.List;
+import java.sql.Timestamp;
+
+//...
+
+java.util.List&lt;String&gt; myList;  // Noncompliant
+java.sql.Timestamp tStamp; // Noncompliant
+import java.util.List;
+import java.sql.Timestamp;
+
+//...
+
+List&lt;String&gt; myList;
+Timestamp tStamp;","UnnecessaryFullyQualifiedName
+Import statements allow the use of non-fully qualified names.  The use of a fully qualified name which is covered by an import statement is redundant.  Consider using the non-fully qualified name.  
+import java.util.List;
+public class Foo {
+    private java.util.List list1;   // Unnecessary FQN
+    private List list2;             // More appropriate given import of 'java.util.List'
+}
+"
+S2148,UseUnderscoresInNumericLiterals,"Underscores should be used to make large numbers readable
+ Beginning with Java 7, it is possible to add underscores ('_') to numeric literals to enhance readability. The addition of underscores in this manner has no semantic meaning, but makes it easier for maintainers to understand the code. The number of digits to the left of a decimal point needed to trigger this rule varies by base.    Base Minimum digits   binary 9   octal 9   decimal 6   hexadecimal 9    It is only the presence of underscores, not their spacing that is scrutinized by this rule. Note that this rule is automatically disabled when the project's sonar.java.source is lower than 7.  
+
+int i = 10000000;  // Noncompliant; is this 10 million or 100 million?
+int  j = 0b01101001010011011110010101011110;  // Noncompliant
+long l = 0x7fffffffffffffffL;  // Noncompliant
+int i = 10_000_000;
+int  j = 0b01101001_01001101_11100101_01011110;
+long l = 0x7fff_ffff_ffff_ffffL;","UseUnderscoresInNumericLiterals
+Since Java 1.7, numeric literals can use underscores to separate digits. This rule enforces that numeric literals above a certain length use these underscores to increase readability.  The rule only supports decimal (base 10) literals for now. The acceptable length under which literals are not required to have underscores is configurable via a property. Even under that length, underscores that are misplaced (not making groups of 3 digits) are reported.  
+public class Foo {
+    private int num = 1000000; // should be 1_000_000
+}
+"
+S121,ControlStatementBraces,"Control structures should use curly braces
+ While not technically incorrect, the omission of curly braces can be misleading, and may lead to the introduction of errors during maintenance.   See  - Use braces for the body of an if, for, or while statement  - Use braces for the body of an if, for, or while statement  
+
+if (condition)  // Noncompliant
+  executeSomething();
+if (condition) {
+  executeSomething();
+}","ControlStatementBraces
+Enforce a policy for braces on control statements. It is recommended to use braces on ‘if … else’ statements and loop statements, even if they are optional. This usually makes the code clearer, and helps prepare the future when you need to add another statement. That said, this rule lets you control which statements are required to have braces via properties.  From 6.2.0 on, this rule supersedes WhileLoopMustUseBraces, ForLoopMustUseBraces, IfStmtMustUseBraces, and IfElseStmtMustUseBraces.  
+while (true)    // not recommended
+  x++;
+while (true) {  // preferred approach
+  x++;
+}
+"
+S1125,SimplifyBooleanExpressions,"Boolean literals should not be redundant
+ Redundant Boolean literals should be removed from expressions to improve readability.  
+
+if (booleanMethod() == true) { /* ... */ }
+if (booleanMethod() == false) { /* ... */ }
+if (booleanMethod() || false) { /* ... */ }
+doSomething(!false);
+doSomething(booleanMethod() == true);
+
+booleanVariable = booleanMethod() ? true : false;
+booleanVariable = booleanMethod() ? true : exp;
+booleanVariable = booleanMethod() ? false : exp;
+booleanVariable = booleanMethod() ? exp : true;
+booleanVariable = booleanMethod() ? exp : false;
+if (booleanMethod()) { /* ... */ }
+if (!booleanMethod()) { /* ... */ }
+if (booleanMethod()) { /* ... */ }
+doSomething(true);
+doSomething(booleanMethod());
+
+booleanVariable = booleanMethod();
+booleanVariable = booleanMethod() || exp;
+booleanVariable = !booleanMethod() &amp;&amp; exp;
+booleanVariable = !booleanMethod() || exp;
+booleanVariable = booleanMethod() &amp;&amp; exp;","SimplifyBooleanExpressions
+Avoid unnecessary comparisons in boolean expressions, they serve no purpose and impacts readability.  
+public class Bar {
+  // can be simplified to
+  // bar = isFoo();
+  private boolean bar = (isFoo() == true);
+  public isFoo() { return false;}
+}
+"
+S1699,ConstructorCallsOverridableMethod,"Constructors should only call non-overridable methods
+ Calling an overridable method from a constructor could result in failures or strange behaviors when instantiating a subclass which overrides the method. For example:  The subclass class constructor starts by contract by calling the parent class constructor. The parent class constructor calls the method, which has been overridden in the child class. If the behavior of the child class method depends on fields that are initialized in the child class constructor, unexpected behavior (like a NullPointerException) can result, because the fields aren't initialized yet.   See  - Ensure that constructors do not call overridable methods  - Do not invoke virtual functions from constructors or destructors 
+
+public class Parent {
+
+  public Parent () {
+    doSomething();  // Noncompliant
+  }
+
+  public void doSomething () {  // not final; can be overridden
+    ...
+  }
+}
+
+public class Child extends Parent {
+
+  private String foo;
+
+  public Child(String foo) {
+    super(); // leads to call doSomething() in Parent constructor which triggers a NullPointerException as foo has not yet been initialized
+    this.foo = foo;
+  }
+
+  public void doSomething () {
+    System.out.println(this.foo.length());
+  }
+
+}","ConstructorCallsOverridableMethod
+Calling overridable methods during construction poses a risk of invoking methods on an incompletely constructed object and can be difficult to debug. It may leave the sub-class unable to construct its superclass or forced to replicate the construction process completely within itself, losing the ability to call super().  If the default constructor contains a call to an overridable method, the subclass may be completely uninstantiable.   Note that this includes method calls throughout the control flow graph - i.e., if a constructor Foo() calls a private method bar() that calls a public method buz(), this denotes a problem.  
+public class SeniorClass {
+  public SeniorClass(){
+      toString(); //may throw NullPointerException if overridden
+  }
+  public String toString(){
+    return ""IAmSeniorClass"";
+  }
+}
+public class JuniorClass extends SeniorClass {
+  private String name;
+  public JuniorClass(){
+    super(); //Automatic call leads to NullPointerException
+    name = ""JuniorClass"";
+  }
+  public String toString(){
+    return name.toUpperCase();
+  }
+}
+"
+S3776,CyclomaticComplexity,"Cognitive Complexity of methods should not be too high
+ Cognitive Complexity is a measure of how hard the control flow of a method is to understand. Methods with high Cognitive Complexity will be difficult to maintain. See   
+none","CyclomaticComplexity
+The complexity of methods directly affects maintenance costs and readability. Concentrating too much decisional logic in a single method makes its behaviour hard to read and change.  Cyclomatic complexity assesses the complexity of a method by counting the number of decision points in a method, plus one for the method entry. Decision points are places where the control flow jumps to another place in the program. As such, they include all control flow statements, such as if, while, for, and case. For more details on the calculation, see the documentation of the Cyclo metric.  Generally, numbers ranging from 1-4 denote low complexity, 5-7 denote moderate complexity, 8-10 denote high complexity, and 11+ is very high complexity. By default, this rule reports methods with a complexity &gt;= 10. Additionnally, classes with many methods of moderate complexity get reported as well once the total of their methods’ complexities reaches 80, even if none of the methods was directly reported.  Reported methods should be broken down into several smaller methods. Reported classes should probably be broken down into subcomponents.  
+class Foo {
+  void baseCyclo() {                // Cyclo = 1
+    highCyclo();
+  }
+  void highCyclo() {                // Cyclo = 10: reported!
+    int x = 0, y = 2;
+    boolean a = false, b = true;
+    if (a &amp;&amp; (y == 1 ? b : true)) { // +3
+      if (y == x) {                 // +1
+        while (true) {              // +1
+          if (x++ &lt; 20) {           // +1
+            break;                  // +1
+          }
+        }
+      } else if (y == t &amp;&amp; !d) {    // +2
+        x = a ? y : x;              // +1
+      } else {
+        x = 2;
+      }
+    }
+  }
+}
+"
+S2737,AvoidRethrowingException,"""catch"" clauses should do more than rethrow
+ A catch clause that only rethrows the caught exception has the same effect as omitting the catch altogether and letting it bubble up automatically, but with more code and the additional detriment of leaving maintainers scratching their heads. Such clauses should either be eliminated or populated with the appropriate logic.   or
+
+public String readFile(File f) {
+  StringBuilder sb = new StringBuilder();
+  try {
+    FileReader fileReader = new FileReader(fileName);
+    BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+    while((line = bufferedReader.readLine()) != null) {
+      //...
+  }
+  catch (IOException e) {  // Noncompliant
+    throw e;
+  }
+  return sb.toString();
+}
+public String readFile(File f) {
+  StringBuilder sb = new StringBuilder();
+  try {
+    FileReader fileReader = new FileReader(fileName);
+    BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+    while((line = bufferedReader.readLine()) != null) {
+      //...
+  }
+  catch (IOException e) {
+    logger.LogError(e);
+    throw e;
+  }
+  return sb.toString();
+}
+public String readFile(File f) throws IOException {
+  StringBuilder sb = new StringBuilder();
+  FileReader fileReader = new FileReader(fileName);
+  BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+  while((line = bufferedReader.readLine()) != null) {
+    //...
+
+  return sb.toString();
+}","AvoidRethrowingException
+Catch blocks that merely rethrow a caught exception only add to code size and runtime complexity.  
+public void bar() {
+    try {
+        // do something
+    }  catch (SomeException se) {
+       throw se;
+    }
+}
+"
+S3077,AvoidUsingVolatile,"Non-primitive fields should not be ""volatile""
+ Marking an array volatile means that the array itself will always be read fresh and never thread cached, but the items in the array will not be. Similarly, marking a mutable object field volatile means the object reference is volatile but the object itself is not, and other threads may not see updates to the object state. This can be salvaged with arrays by using the relevant AtomicArray class, such as AtomicIntegerArray, instead. For mutable objects, the volatile should be removed, and some other method should be used to ensure thread-safety, such as synchronization, or ThreadLocal storage.   See  - Do not assume that declaring a reference volatile guarantees safe publication of the members of the referenced object 
+
+private volatile int [] vInts;  // Noncompliant
+private volatile MyObj myObj;  // Noncompliant
+private AtomicIntegerArray vInts;
+private MyObj myObj;","AvoidUsingVolatile
+Use of the keyword ‘volatile’ is generally used to fine tune a Java application, and therefore, requires a good expertise of the Java Memory Model. Moreover, its range of action is somewhat misknown. Therefore, the volatile keyword should not be used for maintenance purpose and portability.  
+public class ThrDeux {
+  private volatile String var1; // not suggested
+  private          String var2; // preferred
+}
+"
+S1175,FinalizeOverloaded,"The signature of ""finalize()"" should match that of ""Object.finalize()""
+ Object.finalize() is called by the Garbage Collector at some point after the object becomes unreferenced. In general, overloading Object.finalize() is a bad idea because:  The overload may not be called by the Garbage Collector. Users are not expected to call Object.finalize() and will get confused.  But beyond that it's a terrible idea to name a method ""finalize"" if it doesn't actually override Object.finalize().  
+
+public int finalize(int someParameter) {        // Noncompliant
+  /* ... */
+}
+public int someBetterName(int someParameter) {  // Compliant
+  /* ... */
+}","FinalizeOverloaded
+Methods named finalize() should not have parameters.  It is confusing and most likely an attempt to overload Object.finalize(). It will not be called by the VM.  Note that Oracle has declared Object.finalize() as deprecated since JDK 9.  
+public class Foo {
+    // this is confusing and probably a bug
+    protected void finalize(int a) {
+    }
+}
+"
+S1155,UseCollectionIsEmpty,"Collection.isEmpty() should be used to test for emptiness
+ Using Collection.size() to test for emptiness works, but using Collection.isEmpty() makes the code more readable and can be more performant. The time complexity of any isEmpty() method implementation should be O(1) whereas some implementations of size() can be O(n).  
+
+if (myCollection.size() == 0) {  // Noncompliant
+  /* ... */
+}
+if (myCollection.isEmpty()) {
+  /* ... */
+}","UseCollectionIsEmpty
+The isEmpty() method on java.util.Collection is provided to determine if a collection has any elements. Comparing the value of size() to 0 does not convey intent as well as the isEmpty() method.  
+public class Foo {
+    void good() {
+        List foo = getList();
+        if (foo.isEmpty()) {
+            // blah
+        }
+    }
+    void bad() {
+        List foo = getList();
+        if (foo.size() == 0) {
+            // blah
+        }
+    }
+}
+"
+S1194,DoNotExtendJavaLangError,"""java.lang.Error"" should not be extended
+ java.lang.Error and its subclasses represent abnormal conditions, such as OutOfMemoryError, which should only be encountered by the Java Virtual Machine.  
+
+public class MyException extends Error { /* ... */ }       // Noncompliant
+public class MyException extends Exception { /* ... */ }   // Compliant","DoNotExtendJavaLangError
+Errors are system exceptions. Do not extend them.  
+public class Foo extends Error { }
+"
+S1206,OverrideBothEqualsAndHashcode,"""equals(Object obj)"" and ""hashCode()"" should be overridden in pairs
+ According to the Java Language Specification, there is a contract between equals(Object) and hashCode():  If two objects are equal according to the equals(Object) method, then calling the hashCode method on each of the two objects must produce the same integer result. It is not required that if two objects are unequal according to the equals(java.lang.Object) method, then calling the hashCode method on each of the two objects must produce distinct integer results. However, the programmer should be aware that producing distinct integer results for unequal objects may improve the performance of hashtables.  In order to comply with this contract, those methods should be either both inherited, or both overridden.   See  - Object Model Violation: Just One of Equals and Hashcode Defined  - Classes that define an equals() method must also define a hashCode() method 
+
+class MyClass {    // Noncompliant - should also override ""hashCode()""
+
+  @Override
+  public boolean equals(Object obj) {
+    /* ... */
+  }
+
+}
+class MyClass {    // Compliant
+
+  @Override
+  public boolean equals(Object obj) {
+    /* ... */
+  }
+
+  @Override
+  public int hashCode() {
+    /* ... */
+  }
+
+}","OverrideBothEqualsAndHashcode
+Override both public boolean Object.equals(Object other), and public int Object.hashCode(), or override neither.  Even if you are inheriting a hashCode() from a parent class, consider implementing hashCode and explicitly delegating to your superclass.  
+public class Bar {        // poor, missing a hashcode() method
+    public boolean equals(Object o) {
+      // do some comparison
+    }
+}
+public class Baz {        // poor, missing an equals() method
+    public int hashCode() {
+      // return some hash value
+    }
+}
+public class Foo {        // perfect, both methods provided
+    public boolean equals(Object other) {
+      // do some comparison
+    }
+    public int hashCode() {
+      // return some hash value
+    }
+}
+"
+S1174,FinalizeShouldBeProtected,"""Object.finalize()"" should remain protected (versus public) when overriding
+ The contract of the Object.finalize() method is clear: only the Garbage Collector is supposed to call this method. Making this method public is misleading, because it implies that any caller can use it.  See  - finalize() Method Declared Public - Do not use finalizers 
+
+public class MyClass {
+
+  @Override
+  public void finalize() {    // Noncompliant
+    /* ... */
+  }
+}","FinalizeShouldBeProtected
+When overriding the finalize(), the new method should be set as protected.  If made public, other classes may invoke it at inappropriate times.  Note that Oracle has declared Object.finalize() as deprecated since JDK 9.  
+public void finalize() {
+    // do something
+}
+"
+S1193,AvoidInstanceofChecksInCatchClause,"Exception types should not be tested using ""instanceof"" in catch blocks
+ Multiple catch blocks of the appropriate type should be used instead of catching a general exception, and then testing on the type.   See  - Prefer user-defined exceptions over more general exception types 
+
+try {
+  /* ... */
+} catch (Exception e) {
+  if(e instanceof IOException) { /* ... */ }         // Noncompliant
+  if(e instanceof NullPointerException{ /* ... */ }  // Noncompliant
+}
+try {
+  /* ... */
+} catch (IOException e) { /* ... */ }                // Compliant
+} catch (NullPointerException e) { /* ... */ }       // Compliant","AvoidInstanceofChecksInCatchClause
+Each caught exception type should be handled in its own catch clause.  
+try { // Avoid this
+    // do something
+} catch (Exception ee) {
+    if (ee instanceof IOException) {
+        cleanup();
+    }
+}
+try {  // Prefer this:
+    // do something
+} catch (IOException ee) {
+    cleanup();
+}
+"
+S1696,AvoidCatchingNPE,"""NullPointerException"" should not be caught
+ NullPointerException should be avoided, not caught. Any situation in which NullPointerException is explicitly caught can easily be converted to a null test, and any behavior being carried out in the catch block can easily be moved to the ""is null"" branch of the conditional.   See  - Use of NullPointerException Catch to Detect NULL Pointer Dereference - Do not catch NullPointerException or any of its ancestors  
+
+public int lengthPlus(String str) {
+  int len = 2;
+  try {
+    len += str.length();
+  }
+  catch (NullPointerException e) {
+    log.info(""argument was null"");
+  }
+  return len;
+}
+public int lengthPlus(String str) {
+  int len = 2;
+
+  if (str != null) {
+    len += str.length();
+  }
+  else {
+    log.info(""argument was null"");
+  }
+  return len;
+}","AvoidCatchingNPE
+Code should never throw NullPointerExceptions under normal circumstances.  A catch block may hide the original error, causing other, more subtle problems later on.  
+public class Foo {
+    void bar() {
+        try {
+            // do something
+        } catch (NullPointerException npe) {
+        }
+    }
+}
+"
+S1217,DontCallThreadRun,"""Thread.run()"" should not be called directly
+ The purpose of the Thread.run() method is to execute code in a separate, dedicated thread. Calling this method directly doesn't make sense because it causes its code to be executed in the current thread. To get the expected behavior, call the Thread.start() method instead.   See  - Call to Thread run() instead of start() - Do not invoke Thread.run() 
+
+Thread myThread = new Thread(runnable);
+myThread.run(); // Noncompliant
+Thread myThread = new Thread(runnable);
+myThread.start(); // Compliant","DontCallThreadRun
+Explicitly calling Thread.run() method will execute in the caller’s thread of control.  Instead, call Thread.start() for the intended behavior.  
+Thread t = new Thread();
+t.run();            // use t.start() instead
+new Thread().run(); // same violation
+"
+S1147,DoNotCallSystemExit,"Exit methods should not be called
+ Calling System.exit(int status) or Rutime.getRuntime().exit(int status) calls the shutdown hooks and shuts downs the entire Java virtual machine. Calling Runtime.getRuntime().halt(int) does an immediate shutdown, without calling the shutdown hooks, and skipping finalization. Each of these methods should be used with extreme care, and only when the intent is to stop the whole Java process. For instance, none of them should be called from applications running in a J2EE container.  Exceptions These methods are ignored inside main. See  - Use of System.exit() - Do not allow untrusted code to terminate the JVM 
+
+System.exit(0);
+Runtime.getRuntime().exit(0);
+Runtime.getRuntime().halt(0);","DoNotCallSystemExit
+Web applications should not call System.exit(), since only the web container or the application server should stop the JVM. This rule also checks for the equivalent call Runtime.getRuntime().exit().  
+public void bar() {
+    System.exit(0);                 // never call this when running in an application server!
+}
+public void foo() {
+    Runtime.getRuntime().exit(0);   // never stop the JVM manually, the container will do this.
+}
+"
+S1182,ProperCloneImplementation,"Classes that override ""clone"" should be ""Cloneable"" and call ""super.clone()""
+ Cloneable is the marker Interface that indicates that clone() may be called on an object. Overriding clone() without implementing Cloneable can be useful if you want to control how subclasses clone themselves, but otherwise, it's probably a mistake. The usual convention for Object.clone() according to Oracle's Javadoc is:  x.clone() != x x.clone().getClass() == x.getClass() x.clone().equals\(x\)  Obtaining the object that will be returned by calling super.clone() helps to satisfy those invariants:  super.clone() returns a new object instance super.clone() returns an object of the same type as the one clone() was called on Object.clone() performs a shallow copy of the object's state    See  - clone() Method Without super.clone() - Ensure that the clone() method calls super.clone() 
+
+class BaseClass {  // Noncompliant; should implement Cloneable
+  @Override
+  public Object clone() throws CloneNotSupportedException {    // Noncompliant; should return the super.clone() instance
+    return new BaseClass();
+  }
+}
+
+class DerivedClass extends BaseClass implements Cloneable {
+  /* Does not override clone() */
+
+  public void sayHello() {
+    System.out.println(""Hello, world!"");
+  }
+}
+
+class Application {
+  public static void main(String[] args) throws Exception {
+    DerivedClass instance = new DerivedClass();
+    ((DerivedClass) instance.clone()).sayHello();              // Throws a ClassCastException because invariant #2 is violated
+  }
+}
+class BaseClass implements Cloneable {
+  @Override
+  public Object clone() throws CloneNotSupportedException {    // Compliant
+    return super.clone();
+  }
+}
+
+class DerivedClass extends BaseClass implements Cloneable {
+  /* Does not override clone() */
+
+  public void sayHello() {
+    System.out.println(""Hello, world!"");
+  }
+}
+
+class Application {
+  public static void main(String[] args) throws Exception {
+    DerivedClass instance = new DerivedClass();
+    ((DerivedClass) instance.clone()).sayHello();              // Displays ""Hello, world!"" as expected. Invariant #2 is satisfied
+  }
+}","ProperCloneImplementation
+Object clone() should be implemented with super.clone().  
+class Foo{
+    public Object clone(){
+        return new Foo(); // This is bad
+    }
+}
+"
+S2446,UseNotifyAllInsteadOfNotify,"""notifyAll"" should be used
+ notify and notifyAll both wake up sleeping threads, but notify only rouses one, while notifyAll rouses all of them. Since notify might not wake up the right thread, notifyAll should be used instead.   See  - Notify all waiting threads rather than a single thread  
+
+class MyThread extends Thread{
+
+  @Override
+  public void run(){
+    synchronized(this){
+      // ...
+      notify();  // Noncompliant
+    }
+  }
+}
+class MyThread extends Thread{
+
+  @Override
+  public void run(){
+    synchronized(this){
+      // ...
+      notifyAll();
+    }
+  }
+}","UseNotifyAllInsteadOfNotify
+Thread.notify() awakens a thread monitoring the object. If more than one thread is monitoring, then only one is chosen.  The thread chosen is arbitrary; thus its usually safer to call notifyAll() instead.                                                                     
+void bar() {
+    x.notify();
+    // If many threads are monitoring x, only one (and you won't know which) will be notified.
+    // use instead:
+    x.notifyAll();
+  }
+
+void bar() {
+    x.notify();
+    // If many threads are monitoring x, only one (and you won't know which) will be notified.
+    // use instead:
+    x.notifyAll();
+  }
+"
+S3027,UseIndexOfChar,"String function use should be optimized for single characters
+ An indexOf or lastIndexOf call with a single letter String can be made more performant by switching to a call with a char argument.  
+
+String myStr = ""Hello World"";
+// ...
+int pos = myStr.indexOf(""W"");  // Noncompliant
+// ...
+int otherPos = myStr.lastIndexOf(""r""); // Noncompliant
+// ...
+String myStr = ""Hello World"";
+// ...
+int pos = myStr.indexOf('W');
+// ...
+int otherPos = myStr.lastIndexOf('r');
+// ...","UseIndexOfChar
+Use String.indexOf(char) when checking for the index of a single character; it executes faster.  
+String s = ""hello world"";
+// avoid this
+if (s.indexOf(""d"") {}
+// instead do this
+if (s.indexOf('d') {}
+"
+S1449,UseLocaleWithCaseConversions,"Locale should be used in String operations
+ Failure to specify a locale when calling the methods toLowerCase(), toUpperCase() or format() on String objects means the system default encoding will be used, possibly creating problems with international characters or number representations. For instance with the Turkish language, when converting the small letter 'i' to upper case, the result is capital letter 'I' with a dot over it. Case conversion without a locale may work fine in its ""home"" environment, but break in ways that are extremely difficult to diagnose for customers who use different encodings. Such bugs can be nearly, if not completely, impossible to reproduce when it's time to fix them. For locale-sensitive strings, the correct locale should always be used, but Locale.ENGLISH can be used for case-insensitive ones.   See  - Specify an appropriate locale when comparing locale-dependent data 
+
+myString.toLowerCase()
+myString.toLowerCase(Locale.TR)","UseLocaleWithCaseConversions
+When doing String::toLowerCase()/toUpperCase() conversions, use an explicit locale argument to specify the case transformation rules.  Using String::toLowerCase() without arguments implicitly uses Locale::getDefault(). The problem is that the default locale depends on the current JVM setup (and usually on the system in which it is running). Using the system default may be exactly what you want (e.g. if you are manipulating strings you got through standard input), but it may as well not be the case (e.g. if you are getting the string over the network or a file, and the encoding is well-defined and independent of the environment). In the latter case, using the default locale makes the case transformation brittle, as it may yield unexpected results on a machine whose locale has other case translation rules. For example, in Turkish, the uppercase form of i is İ (U+0130, not ASCII) and not I (U+0049) as in English.  The rule is intended to force developers to think about locales when dealing with strings. By taking a conscious decision about the choice of locale at the time of writing, you reduce the risk of surprising behaviour down the line, and communicate your intent to future readers.  
+// violation - implicitly system-dependent conversion
+if (x.toLowerCase().equals(""list"")) {}
+// The above will not match ""LIST"" on a system with a Turkish locale.
+// It could be replaced with
+if (x.toLowerCase(Locale.US).equals(""list"")) { }
+// or simply
+if (x.equalsIgnoreCase(""list"")) { }
+// ok - system independent conversion
+String z = a.toLowerCase(Locale.ROOT);
+// ok - explicit system-dependent conversion
+String z2 = a.toLowerCase(Locale.getDefault());
+"
+S3020,ClassCastExceptionWithToArray,"""toArray"" should be passed an array of the proper type
+ Given no arguments, the Collections.toArray method returns an Object [], which will cause a ClassCastException at runtime if you try to cast it to an array of the proper class. Instead, pass an array of the correct type in to the call.  
+
+public String [] getStringArray(List&lt;String&gt; strings) {
+  return (String []) strings.toArray();  // Noncompliant; ClassCastException thrown
+}
+public String [] getStringArray(List&lt;String&gt; strings) {
+  return strings.toArray(new String[0]);
+}","ClassCastExceptionWithToArray
+When deriving an array of a specific class from your Collection, one should provide an array of the same class as the parameter of the toArray() method. Doing otherwise you will will result in a ClassCastException.  
+Collection c = new ArrayList();
+Integer obj = new Integer(1);
+c.add(obj);
+    // this would trigger the rule (and throw a ClassCastException if executed)
+Integer[] a = (Integer [])c.toArray();
+   // this is fine and will not trigger the rule
+Integer[] b = (Integer [])c.toArray(new Integer[c.size()]);
+"
+S1150,ReplaceEnumerationWithIterator,"Enumeration should not be implemented
+ From the official Oracle Javadoc:  NOTE: The functionality of this Enumeration interface is duplicated by the Iterator interface. In addition, Iterator adds an optional remove operation, and has shorter method names. New implementations should consider using Iterator in preference to Enumeration.   
+
+public class MyClass implements Enumeration {  // Non-Compliant
+  /* ... */
+}
+public class MyClass implements Iterator {     // Compliant
+  /* ... */
+}","ReplaceEnumerationWithIterator
+Consider replacing Enumeration usages with the newer java.util.Iterator  
+public class Foo implements Enumeration {
+    private int x = 42;
+    public boolean hasMoreElements() {
+        return true;
+    }
+    public Object nextElement() {
+        return String.valueOf(i++);
+    }
+}
+"
+S1181,AvoidCatchingThrowable,"Throwable and Error should not be caught
+ Throwable is the superclass of all errors and exceptions in Java. Error is the superclass of all errors, which are not meant to be caught by applications. Catching either Throwable or Error will also catch OutOfMemoryError and InternalError, from which an application should not attempt to recover.   See  - Declaration of Catch for Generic Exception - Do not catch NullPointerException or any of its ancestors  
+
+try { /* ... */ } catch (Throwable t) { /* ... */ }
+try { /* ... */ } catch (Error e) { /* ... */ }
+try { /* ... */ } catch (RuntimeException e) { /* ... */ }
+try { /* ... */ } catch (MyException e) { /* ... */ }","AvoidCatchingThrowable
+Catching Throwable errors is not recommended since its scope is very broad. It includes runtime issues such as OutOfMemoryError that should be exposed and managed separately.  
+public void bar() {
+    try {
+        // do something
+    } catch (Throwable th) {  // should not catch Throwable
+        th.printStackTrace();
+    }
+}
+"
+S1148,AvoidPrintStackTrace,"Throwable.printStackTrace(...) should not be called
+ Throwable.printStackTrace(...) prints a Throwable and its stack trace to some stream. By default that stream System.Err, which could inadvertently expose sensitive information. Loggers should be used instead to print Throwables, as they have many advantages:  Users are able to easily retrieve the logs. The format of log messages is uniform and allow users to browse the logs easily.  This rule raises an issue when printStackTrace is used without arguments, i.e. when the stack trace is printed to the default stream.   See  - Sensitive Data Exposure  - Leftover Debug Code 
+
+try {
+  /* ... */
+} catch(Exception e) {
+  e.printStackTrace();        // Noncompliant
+}
+try {
+  /* ... */
+} catch(Exception e) {
+  LOGGER.log(""context"", e);
+}","AvoidPrintStackTrace
+Avoid printStackTrace(); use a logger call instead.  
+class Foo {
+    void bar() {
+        try {
+            // do something
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+"
+S1185,UselessOverridingMethod,"Overriding methods should do more than simply call the same method in the super class
+ Overriding a method just to call the same method from the super class without performing any other actions is useless and misleading. The only time this is justified is in final overriding methods, where the effect is to lock in the parent class behavior. This rule ignores such overrides of equals, hashCode and toString.  
+
+public void doSomething() {
+  super.doSomething();
+}
+
+@Override
+public boolean isLegal(Action action) {
+  return super.isLegal(action);
+}
+@Override
+public boolean isLegal(Action action) {         // Compliant - not simply forwarding the call
+  return super.isLegal(new Action(/* ... */));
+}
+
+@Id
+@Override
+public int getId() {                            // Compliant - there is annotation different from @Override
+  return super.getId();
+}","UselessOverridingMethod
+The overriding method merely calls the same method defined in a superclass.  
+public void foo(String bar) {
+    super.foo(bar);      // why bother overriding?
+}
+public String foo() {
+    return super.foo();  // why bother overriding?
+}
+@Id
+public Long getId() {
+    return super.getId();  // OK if 'ignoreAnnotations' is false, which is the default behavior
+}
+"
+S1317,StringBufferInstantiationWithChar,"""StringBuilder"" and ""StringBuffer"" should not be instantiated with a character
+ Instantiating a StringBuilder or a StringBuffer with a character is misleading because most Java developers would expect the character to be the initial value of the StringBuffer. What actually happens is that the int representation of the character is used to determine the initial size of the StringBuffer.  
+
+StringBuffer foo = new StringBuffer('x');   //equivalent to StringBuffer foo = new StringBuffer(120);
+StringBuffer foo = new StringBuffer(""x"");","StringBufferInstantiationWithChar
+Individual character values provided as initialization arguments will be converted into integers. This can lead to internal buffer sizes that are larger than expected. Some examples:  new StringBuffer()      //  16 new StringBuffer(6)     //  6 new StringBuffer(""hello world"")  // 11 + 16 = 27 new StringBuffer('A')   //  chr(A) = 65 new StringBuffer(""A"")   //  1 + 16 = 17  new StringBuilder()     //  16 new StringBuilder(6)    //  6 new StringBuilder(""hello world"")  // 11 + 16 = 27 new StringBuilder('C')   //  chr(C) = 67 new StringBuilder(""A"")   //  1 + 16 = 17   
+// misleading instantiation, these buffers
+// are actually sized to 99 characters long
+StringBuffer  sb1 = new StringBuffer('c');
+StringBuilder sb2 = new StringBuilder('c');
+// in these forms, just single characters are allocated
+StringBuffer  sb3 = new StringBuffer(""c"");
+StringBuilder sb4 = new StringBuilder(""c"");
+"
+S3032,UseProperClassLoader,"JEE applications should not ""getClassLoader""
+ Using the standard getClassLoader() may not return the right class loader in a JEE context. Instead, go through the currentThread.  
+
+ClassLoader cl = this.getClass().getClassLoader();  // Noncompliant
+ClassLoader cl = Thread.currentThread().getContextClassLoader();","UseProperClassLoader
+In J2EE, the getClassLoader() method might not work as expected. Use Thread.currentThread().getContextClassLoader() instead.                                                                     
+public class Foo {
+    ClassLoader cl = Bar.class.getClassLoader();
+}
+
+public class Foo {
+    ClassLoader cl = Bar.class.getClassLoader();
+}
+"
+S1481,UnusedLocalVariable,"Unused local variables should be removed
+ If a local variable is declared but not used, it is dead code and should be removed. Doing so will improve maintainability because developers will not wonder what the variable is used for.  
+
+public int numberOfMinutes(int hours) {
+  int seconds = 0;   // seconds is never used
+  return hours * 60;
+}
+public int numberOfMinutes(int hours) {
+  return hours * 60;
+}","UnusedLocalVariable
+Detects when a local variable is declared and/or assigned, but not used.  
+public class Foo {
+    public void doSomething() {
+        int i = 5; // Unused
+    }
+}
+"
+S1301,TooFewBranchesForASwitchStatement,"""switch"" statements should have at least 3 ""case"" clauses
+ switch statements are useful when there are many different cases depending on the value of the same expression. For just one or two cases however, the code will be more readable with if statements.  
+
+switch (variable) {
+  case 0:
+    doSomething();
+    break;
+  default:
+    doSomethingElse();
+    break;
+}
+if (variable == 0) {
+  doSomething();
+} else {
+  doSomethingElse();
+}","TooFewBranchesForASwitchStatement
+Switch statements are intended to be used to support complex branching behaviour. Using a switch for only a few cases is ill-advised, since switches are not as easy to understand as if-then statements. In these cases use the if-then statement to increase code readability.  
+// With a minimumNumberCaseForASwitch of 3
+public class Foo {
+    public void bar() {
+        switch (condition) {
+            case ONE:
+                instruction;
+                break;
+            default:
+                break; // not enough for a 'switch' stmt, a simple 'if' stmt would have been more appropriate
+        }
+    }
+}
+"
+S1223,MethodWithSameNameAsEnclosingClass,"Non-constructor methods should not have the same name as the enclosing class
+ Having a class and some of its methods sharing the same name is misleading, and leaves others to wonder whether it was done that way on purpose, or was the methods supposed to be a constructor.  
+
+public class Foo {
+   public Foo() {...}
+   public void Foo(String label) {...}  // Noncompliant
+}
+public class Foo {
+   public Foo() {...}
+   public void foo(String label) {...}  // Compliant
+}","MethodWithSameNameAsEnclosingClass
+Non-constructor methods should not have the same name as the enclosing class.  
+public class MyClass {
+    public MyClass() {}         // this is OK because it is a constructor
+    public void MyClass() {}    // this is bad because it is a method
+}
+"
+S1264,ForLoopShouldBeWhileLoop,"A ""while"" loop should be used instead of a ""for"" loop
+ When only the condition expression is defined in a for loop, and the initialization and increment expressions are missing, a while loop should be used instead to increase readability.  
+
+for (;condition;) { /*...*/ }
+while (condition) { /*...*/ }","ForLoopShouldBeWhileLoop
+Some for loops can be simplified to while loops, this makes them more concise.  
+public class Foo {
+    void bar() {
+        for (;true;) true; // No Init or Update part, may as well be: while (true)
+    }
+}
+"
+S2974,ClassWithOnlyPrivateConstructorsShouldBeFinal,"Classes without ""public"" constructors should be ""final""
+ Classes with only private constructors should be marked final to prevent any mistaken extension attempts.  
+
+public class PrivateConstructorClass {  // Noncompliant
+  private PrivateConstructorClass() {
+    // ...
+  }
+
+  public static int magic(){
+    return 42;
+  }
+}
+public final class PrivateConstructorClass {  // Compliant
+  private PrivateConstructorClass() {
+    // ...
+  }
+
+  public static int magic(){
+    return 42;
+  }
+}","ClassWithOnlyPrivateConstructorsShouldBeFinal
+A class with only private constructors should be final, unless the private constructor is invoked by a inner class.  
+public class Foo {  //Should be final
+    private Foo() { }
+}
+"
+S2293,UseDiamondOperator,"The diamond operator (""<>"") should be used
+ Java 7 introduced the diamond operator (&lt;&gt;) to reduce the verbosity of generics code. For instance, instead of having to declare a List's type in both its declaration and its constructor, you can now simplify the constructor declaration with &lt;&gt;, and the compiler will infer the type. Note that this rule is automatically disabled when the project's sonar.java.source is lower than 7.  
+
+List&lt;String&gt; strings = new ArrayList&lt;String&gt;();  // Noncompliant
+Map&lt;String,List&lt;Integer&gt;&gt; map = new HashMap&lt;String,List&lt;Integer&gt;&gt;();  // Noncompliant
+List&lt;String&gt; strings = new ArrayList&lt;&gt;();
+Map&lt;String,List&lt;Integer&gt;&gt; map = new HashMap&lt;&gt;();","UseDiamondOperator
+Use the diamond operator to let the type be inferred automatically. With the Diamond operator it is possible to avoid duplication of the type parameters. Instead, the compiler is now able to infer the parameter types for constructor calls, which makes the code also more readable.  
+List&lt;String&gt; strings = new ArrayList&lt;String&gt;(); // unnecessary duplication of type parameters
+List&lt;String&gt; stringsWithDiamond = new ArrayList&lt;&gt;(); // using the diamond operator is more concise
+"
+S1659,OneDeclarationPerLine,"Multiple variables should not be declared on the same line
+ Declaring multiple variables on one line is difficult to read.   See  - Do not declare more than one variable per declaration  - Do not declare more than one variable per declaration 
+
+class MyClass {
+
+  private int a, b;
+
+  public void method(){
+    int c; int d;
+  }
+}
+class MyClass {
+
+  private int a;
+  private int b;
+
+  public void method(){
+    int c;
+    int d;
+  }
+}","OneDeclarationPerLine
+Java allows the use of several variables declaration of the same type on one line. However, it can lead to quite messy code. This rule looks for several declarations on the same line.  
+String name;            // separate declarations
+String lastname;
+String name, lastname;  // combined declaration, a violation
+String name,
+       lastname;        // combined declaration on multiple lines, no violation by default.
+                        // Set property strictMode to true to mark this as violation.
+"
+S1126,SimplifyBooleanReturns,"Return of boolean expressions should not be wrapped into an ""if-then-else"" statement
+ Return of boolean literal statements wrapped into if-then-else ones should be simplified. Similarly, method invocations wrapped into if-then-else differing only from boolean literals should be simplified into a single invocation.  
+
+boolean foo(Object param) {
+  if (expression) { // Noncompliant
+    bar(param, true, ""qix"");
+  } else {
+    bar(param, false, ""qix"");
+  }
+
+  if (expression) {  // Noncompliant
+    return true;
+  } else {
+    return false;
+  }
+}
+boolean foo(Object param) {
+  bar(param, expression, ""qix"");
+
+  return expression;
+}","SimplifyBooleanReturns
+Avoid unnecessary if-then-else statements when returning a boolean. The result of the conditional test can be returned instead.  
+public boolean isBarEqualTo(int x) {
+    if (bar == x) {      // this bit of code...
+        return true;
+    } else {
+        return false;
+    }
+}
+public boolean isBarEqualTo(int x) {
+    return bar == x;    // can be replaced with this
+}
+"
+S3052,RedundantFieldInitializer,"Fields should not be initialized to default values
+ The compiler automatically initializes class fields to their default values before setting them with any initialization values, so there is no need to explicitly set a field to its default value. Further, under the logic that cleaner code is better code, it's considered poor style to do so.   Exceptions final fields are ignored.
+
+public class MyClass {
+
+  int count = 0;  // Noncompliant
+  // ...
+
+}
+public class MyClass {
+
+  int count;
+  // ...
+
+}","RedundantFieldInitializer
+Java will initialize fields with known default values so any explicit initialization of those same defaults is redundant and results in a larger class file (approximately three additional bytecode instructions per field).  
+public class C {
+    boolean b   = false;    // examples of redundant initializers
+    byte by     = 0;
+    short s     = 0;
+    char c      = 0;
+    int i       = 0;
+    long l      = 0;
+    float f     = .0f;    // all possible float literals
+    doable d    = 0d;     // all possible double literals
+    Object o    = null;
+    MyClass mca[] = null;
+    int i1 = 0, ia1[] = null;
+    class Nested {
+        boolean b = false;
+    }
+}
+"
+S1145,UnconditionalIfStatement,"Useless ""if(true) {...}"" and ""if(false){...}"" blocks should be removed
+ if statements with conditions that are always false have the effect of making blocks of code non-functional. if statements with conditions that are always true are completely redundant, and make the code less readable. There are three possible causes for the presence of such code:  An if statement was changed during debugging and that debug code has been committed. Some value was left unset. Some logic is not doing what the programmer thought it did.  In any of these cases, unconditional if statements should be removed.   See  - Leftover Debug Code - Expression is Always False - Expression is Always True  Deprecated This rule is deprecated; use {rule:squid:S2583} instead.
+
+if (true) {
+  doSomething();
+}
+...
+if (false) {
+  doSomethingElse();
+}
+
+if (2 &lt; 3 ) { ... }  // Noncompliant; always false
+
+int i = 0;
+int j = 0;
+// ...
+j = foo();
+
+if (j &gt; 0 &amp;&amp; i &gt; 0) { ... }  // Noncompliant; always false - i never set after initialization
+
+boolean b = true;
+//...
+if (b || !b) { ... }  // Noncompliant
+doSomething();
+...","UnconditionalIfStatement
+Do not use ""if"" statements whose conditionals are always true or always false.  
+public class Foo {
+    public void close() {
+        if (true) {        // fixed conditional, not recommended
+            // ...
+        }
+    }
+}
+"
+S3599,DoubleBraceInitialization,"Double Brace Initialization should not be used
+ Because Double Brace Initialization (DBI) creates an anonymous class with a reference to the instance of the owning object, its use can lead to memory leaks if the anonymous inner class is returned and held by other objects. Even when there's no leak, DBI is so obscure that it's bound to confuse most maintainers. For collections, use Arrays.asList instead, or explicitly add each item directly to the collection.  
+
+Map source = new HashMap(){{ // Noncompliant
+    put(""firstName"", ""John"");
+    put(""lastName"", ""Smith"");
+}};
+Map source = new HashMap();
+// ...
+source.put(""firstName"", ""John"");
+source.put(""lastName"", ""Smith"");
+// ...","DoubleBraceInitialization
+Double brace initialisation is a pattern to initialise eg collections concisely. But it implicitly generates a new .class file, and the object holds a strong reference to the enclosing object. For those reasons, it is preferable to initialize the object normally, even though it’s verbose.  This rule counts any anonymous class which only has a single initializer as an instance of double-brace initialization. There is currently no way to find out whether a method called in the initializer is not accessible from outside the anonymous class, and those legit cases should be suppressed for the time being.  
+// this is double-brace initialization
+return new ArrayList&lt;String&gt;(){{
+    add(""a"");
+    add(""b"");
+    add(""c"");
+}};
+// the better way is to not create an anonymous class:
+List&lt;String&gt; a = new ArrayList&lt;&gt;();
+a.add(""a"");
+a.add(""b"");
+a.add(""c"");
+return a;
+"
+S2333,UnnecessaryModifier,"Redundant modifiers should not be used
+ The methods declared in an interface are public and abstract by default. Any variables are automatically public static final. There is no need to explicitly declare them so. Since annotations are implicitly interfaces, the same holds true for them as well. Similarly, the final modifier is redundant on any method of a final class, and private is redundant on the constructor of an Enum.  
+
+public interface Vehicle {
+
+  public void go(int speed, Direction direction);  // Noncompliant
+public interface Vehicle {
+
+  void go(int speed, Direction direction);","UnnecessaryModifier
+Fields in interfaces and annotations are automatically public static final, and methods are public abstract. Classes, interfaces or annotations nested in an interface or annotation are automatically public static (all nested interfaces and annotations are automatically static). Nested enums are automatically static. For historical reasons, modifiers which are implied by the context are accepted by the compiler, but are superfluous.  
+public @interface Annotation {
+    public abstract void bar();     // both abstract and public are ignored by the compiler
+    public static final int X = 0;  // public, static, and final all ignored
+    public static class Bar {}      // public, static ignored
+    public static interface Baz {}  // ditto
+}
+public interface Foo {
+    public abstract void bar();     // both abstract and public are ignored by the compiler
+    public static final int X = 0;  // public, static, and final all ignored
+    public static class Bar {}      // public, static ignored
+    public static interface Baz {}  // ditto
+}
+public class Bar {
+    public static interface Baz {}  // static ignored
+    public static enum FoorBar {    // static ignored
+        FOO;
+    }
+}
+"
+S1170,FinalFieldCouldBeStatic,"Public constants and fields initialized at declaration should be ""static final"" rather than merely ""final""
+ Making a public constant just final as opposed to static final leads to duplicating its value for every instance of the class, uselessly increasing the amount of memory required to execute the application. Further, when a non-public, final field isn't also static, it implies that different instances can have different values. However, initializing a non-static final field in its declaration forces every instance to have the same value. So such fields should either be made static or initialized in the constructor.   Exceptions No issues are reported on final fields of inner classes whose type is not a primitive or a String. Indeed according to the Java specification:  An inner class is a nested class that is not explicitly or implicitly declared static. Inner classes may not declare static initializers (§8.7) or member interfaces. Inner classes may not declare static members, unless they are compile-time constant fields (§15.28). 
+
+public class Myclass {
+  public final int THRESHOLD = 3;
+}
+public class Myclass {
+  public static final int THRESHOLD = 3;    // Compliant
+}","FinalFieldCouldBeStatic
+If a final field is assigned to a compile-time constant, it could be made static, thus saving overhead in each object at runtime.  
+public class Foo {
+  public final int BAR = 42; // this could be static and save some space
+}
+"
+S1700,AvoidFieldNameMatchingTypeName,"A field should not duplicate the name of its containing class
+ It's confusing to have a class member with the same name (case differences aside) as its enclosing class. This is particularly so when you consider the common practice of naming a class instance for the class itself. Best practice dictates that any field or member with the same name as the enclosing class be renamed to be more descriptive of the particular aspect of the class it represents or holds.   Exceptions When the type of the field is the containing class and that field is static, no issue is raised to allow singletons named like the type.
+
+public class Foo {
+  private String foo;
+
+  public String getFoo() { }
+}
+
+Foo foo = new Foo();
+foo.getFoo() // what does this return?
+public class Foo {
+  private String name;
+
+  public String getName() { }
+}
+
+//...
+
+Foo foo = new Foo();
+foo.getName()
+
+public class Foo {
+  ...
+  private static Foo foo;
+  public Foo getInstance() {
+    if(foo==null) {
+      foo = new Foo();
+    }
+    return foo;
+  }
+  ...
+}","AvoidFieldNameMatchingTypeName
+It is somewhat confusing to have a field name matching the declaring class name. This probably means that type and/or field names should be chosen more carefully.  
+public class Foo extends Bar {
+    int foo;    // There is probably a better name that can be used
+}
+"
+S1215,DoNotCallGarbageCollectionExplicitly,"Execution of the Garbage Collector should be triggered only by the JVM
+ Calling System.gc() or Runtime.getRuntime().gc() is a bad idea for a simple reason: there is no way to know exactly what will be done under the hood by the JVM because the behavior will depend on its vendor, version and options:  Will the whole application be frozen during the call? Is the -XX:DisableExplicitGC option activated? Will the JVM simply ignore the call? ...  An application relying on these unpredictable methods is also unpredictable and therefore broken. The task of running the garbage collector should be left exclusively to the JVM.
+none","DoNotCallGarbageCollectionExplicitly
+Calls to System.gc(), Runtime.getRuntime().gc(), and System.runFinalization() are not advised. Code should have the same behavior whether the garbage collection is disabled using the option -Xdisableexplicitgc or not. Moreover, ""modern"" jvms do a very good job handling garbage collections. If memory usage issues unrelated to memory leaks develop within an application, it should be dealt with JVM options rather than within the code itself.  
+public class GCCall {
+    public GCCall() {
+        // Explicit gc call !
+        System.gc();
+    }
+    public void doSomething() {
+        // Explicit gc call !
+        Runtime.getRuntime().gc();
+    }
+    public explicitGCcall() {
+        // Explicit gc call !
+        System.gc();
+    }
+    public void doSomething() {
+        // Explicit gc call !
+        Runtime.getRuntime().gc();
+    }
+}
+"
+S3010,AssignmentToNonFinalStatic,"Static fields should not be updated in constructors
+ Assigning a value to a static field in a constructor could cause unreliable behavior at runtime since it will change the value for all instances of the class. Instead remove the field's static modifier, or initialize it statically.  
+
+public class Person {
+  static Date dateOfBirth;
+  static int expectedFingers;
+
+  public Person(date birthday) {
+    dateOfBirth = birthday;  // Noncompliant; now everyone has this birthday
+    expectedFingers = 10;  // Noncompliant
+  }
+}
+public class Person {
+  Date dateOfBirth;
+  static int expectedFingers = 10;
+
+  public Person(date birthday) {
+    dateOfBirth = birthday;
+  }
+}","AssignmentToNonFinalStatic
+Identifies a possible unsafe usage of a static field.  
+public class StaticField {
+   static int x;
+   public FinalFields(int y) {
+    x = y; // unsafe
+   }
+}
+"
+S100,MethodNamingConventions,"Method names should comply with a naming convention
+ Shared naming conventions allow teams to collaborate efficiently. This rule checks that all method names match a provided regular expression.  With default provided regular expression ^[a-z][a-zA-Z0-9]*$:  Exceptions Overriding methods are excluded.
+
+public int DoSomething(){...}
+public int doSomething(){...}
+@Override
+public int Do_Something(){...}","MethodNamingConventions
+Configurable naming conventions for method declarations. This rule reports method declarations which do not match the regex that applies to their specific kind (e.g. JUnit test or native method). Each regex can be configured through properties.  By default this rule uses the standard Java naming convention (Camel case).  
+public class Foo {
+    public void fooStuff() {
+    }
+}
+"
+S131,SwitchStmtsShouldHaveDefault,"""switch"" statements should have ""default"" clauses
+ The requirement for a final default clause is defensive programming. The clause should either take appropriate action, or contain a suitable comment as to why no action is taken.   Exceptions If the switch parameter is an Enum and if all the constants of this enum are used in the case statements, then no default clause is expected. Example: See  - Missing Default Case in Switch Statement - Strive for logical completeness 
+
+switch (param) {  //missing default clause
+  case 0:
+    doSomething();
+    break;
+  case 1:
+    doSomethingElse();
+    break;
+}
+
+switch (param) {
+  default: // default clause should be the last one
+    error();
+    break;
+  case 0:
+    doSomething();
+    break;
+  case 1:
+    doSomethingElse();
+    break;
+}
+switch (param) {
+  case 0:
+    doSomething();
+    break;
+  case 1:
+    doSomethingElse();
+    break;
+  default:
+    error();
+    break;
+}
+public enum Day {
+    SUNDAY, MONDAY
+}
+...
+switch(day) {
+  case SUNDAY:
+    doSomething();
+    break;
+  case MONDAY:
+    doSomethingElse();
+    break;
+}","SwitchStmtsShouldHaveDefault
+All switch statements should include a default option to catch any unspecified values.  
+public void bar() {
+    int x = 2;
+    switch (x) {
+      case 1: int j = 6;
+      case 2: int j = 8;
+          // missing default: here
+    }
+}
+"
+S1450,SingularField,"Private fields only used as local variables in methods should become local variables
+ When the value of a private field is always assigned to in a class' methods before being read, then it is not being used to store class information. Therefore, it should become a local variable in the relevant methods to prevent any misunderstanding.   Exceptions This rule doesn't raise any issue on annotated field.
+
+public class Foo {
+  private int a;
+  private int b;
+
+  public void doSomething(int y) {
+    a = y + 5;
+    ...
+    if(a == 0) {
+      ...
+    }
+    ...
+  }
+
+  public void doSomethingElse(int y) {
+    b = y + 3;
+    ...
+  }
+}
+public class Foo {
+
+  public void doSomething(int y) {
+    int a = y + 5;
+    ...
+    if(a == 0) {
+      ...
+    }
+  }
+
+  public void doSomethingElse(int y) {
+    int b = y + 3;
+    ...
+  }
+}","SingularField
+Fields whose scopes are limited to just single methods do not rely on the containing object to provide them to other methods. They may be better implemented as local variables within those methods.  
+public class Foo {
+    private int x;  // no reason to exist at the Foo instance level
+    public void foo(int y) {
+     x = y + 5;
+     return x;
+    }
+}
+"
+S1068,UnusedPrivateField,"Unused ""private"" fields should be removed
+ If a private field is declared but not used in the program, it can be considered dead code and should therefore be removed. This will improve maintainability because developers will not wonder what the variable is used for. Note that this rule does not take reflection into account, which means that issues will be raised on private fields that are only accessed using the reflection API.   Exceptions The Java serialization runtime associates with each serializable class a version number, called serialVersionUID, which is used during deserialization to verify that the sender and receiver of a serialized object have loaded classes for that object that are compatible with respect to serialization. A serializable class can declare its own serialVersionUID explicitly by declaring a field named serialVersionUID that must be static, final, and of type long. By definition those serialVersionUID fields should not be reported by this rule: Moreover, this rule doesn't raise any issue on annotated fields.
+
+public class MyClass {
+  private int foo = 42;
+
+  public int compute(int a) {
+    return a * 42;
+  }
+
+}
+public class MyClass {
+  public int compute(int a) {
+    return a * 42;
+  }
+}
+public class MyClass implements java.io.Serializable {
+  private static final long serialVersionUID = 42L;
+}","UnusedPrivateField
+Detects when a private field is declared and/or assigned a value, but not used.  
+public class Something {
+    private static int FOO = 2; // Unused
+    private int i = 5; // Unused
+    private int j = 6;
+    public int addOne() {
+        return j++;
+    }
+}
+"
+S2047,BooleanGetMethodName,"The names of methods with boolean return values should start with ""is"" or ""has""
+ Well-named functions can allow the users of your code to understand at a glance what to expect from the function - even before reading the documentation. Toward that end, methods returning a boolean should have names that start with ""is"" or ""has"" rather than with ""get"".   Exceptions Overriding methods are excluded.
+
+public boolean getFoo() { // Noncompliant
+  // ...
+}
+
+public boolean getBar(Bar c) { // Noncompliant
+  // ...
+}
+
+public boolean testForBar(Bar c) { // Compliant - The method does not start by 'get'.
+  // ...
+}
+public boolean isFoo() {
+  // ...
+}
+
+public boolean hasBar(Bar c) {
+  // ...
+}
+
+public boolean testForBar(Bar c) {
+  // ...
+}
+@Override
+public boolean getFoo(){
+  // ...
+}","BooleanGetMethodName
+Methods that return boolean results should be named as predicate statements to denote this. I.e, ‘isReady()’, ‘hasValues()’, ‘canCommit()’, ‘willFail()’, etc.   Avoid the use of the ‘get’ prefix for these methods.  
+public boolean getFoo();            // bad
+public boolean isFoo();             // ok
+public boolean getFoo(boolean bar); // ok, unless checkParameterizedMethods=true
+"
+S1144,UnusedPrivateMethod,"Unused ""private"" methods should be removed
+ private methods that are never executed are dead code: unnecessary, inoperative code that should be removed. Cleaning out dead code decreases the size of the maintained codebase, making it easier to understand the program and preventing bugs from being introduced. Note that this rule does not take reflection into account, which means that issues will be raised on private methods that are only accessed using the reflection API.   Exceptions This rule doesn't raise any issue on annotated methods.
+
+public class Foo implements Serializable
+{
+  private Foo(){}     //Compliant, private empty constructor intentionally used to prevent any direct instantiation of a class.
+  public static void doSomething(){
+    Foo foo = new Foo();
+    ...
+  }
+  private void unusedPrivateMethod(){...}
+  private void writeObject(ObjectOutputStream s){...}  //Compliant, relates to the java serialization mechanism
+  private void readObject(ObjectInputStream in){...}  //Compliant, relates to the java serialization mechanism
+}
+public class Foo implements Serializable
+{
+  private Foo(){}     //Compliant, private empty constructor intentionally used to prevent any direct instantiation of a class.
+  public static void doSomething(){
+    Foo foo = new Foo();
+    ...
+  }
+
+  private void writeObject(ObjectOutputStream s){...}  //Compliant, relates to the java serialization mechanism
+
+  private void readObject(ObjectInputStream in){...}  //Compliant, relates to the java serialization mechanism
+}","UnusedPrivateMethod
+Unused Private Method detects when a private method is declared but is unused.  
+public class Something {
+    private void foo() {} // unused
+}
+"
+S1941,PrematureDeclaration,"Variables should not be declared before they are relevant
+ For the sake of clarity, variables should be declared as close to where they're used as possible. This is particularly true when considering methods that contain early returns and the potential to throw exceptions. In these cases, it is not only pointless, but also confusing to declare a variable that may never be used because conditions for an early return are met first.  
+
+public boolean isConditionMet(int a, int b) {
+  int difference = a - b;
+  MyClass foo = new MyClass(a);  // Noncompliant; not used before early return
+
+  if (difference &lt; 0) {
+    return false;
+  }
+
+  // ...
+
+  if (foo.doTheThing()) {
+    return true;
+  }
+  return false;
+}
+public boolean isConditionMet(int a, int b) {
+  int difference = a - b;
+
+  if (difference &lt; 0) {
+    return false;
+  }
+
+  // ...
+
+  MyClass foo = new MyClass(a);
+  if (foo.doTheThing()) {
+    return true;
+  }
+  return false;
+}","PrematureDeclaration
+Checks for variables that are defined before they might be used. A reference is deemed to be premature if it is created right before a block of code that doesn’t use it that also has the ability to return or throw an exception.  
+public int getLength(String[] strings) {
+    int length = 0; // declared prematurely
+    if (strings == null || strings.length == 0) return 0;
+    for (String str : strings) {
+        length += str.length();
+    }
+    return length;
+}
+"
+S1066,CollapsibleIfStatements,"Collapsible ""if"" statements should be merged
+ Merging collapsible if statements increases the code's readability.  
+
+if (file != null) {
+  if (file.isFile() || file.isDirectory()) {
+    /* ... */
+  }
+}
+if (file != null &amp;&amp; isFileOrDirectory(file)) {
+  /* ... */
+}
+
+private static boolean isFileOrDirectory(File file) {
+  return file.isFile() || file.isDirectory();
+}","CollapsibleIfStatements
+Sometimes two consecutive ‘if’ statements can be consolidated by separating their conditions with a boolean short-circuit operator.  
+void bar() {
+    if (x) {            // original implementation
+        if (y) {
+            // do stuff
+        }
+    }
+}
+void bar() {
+    if (x &amp;&amp; y) {        // optimized implementation
+        // do stuff
+    }
+}
+"
+S127,AvoidReassigningLoopVariables,"""for"" loop stop conditions should be invariant
+A for loop stop condition should test the loop counter against an invariant value (i.e. one that is true at both the beginning and ending of every loop iteration). Ideally, this means that the stop condition is set to a local variable just before the loop begins. Stop conditions that are not invariant are slightly less efficient, as well as being difficult to understand and maintain, and likely lead to the introduction of errors in the future. This rule tracks three types of non-invariant stop conditions:  When the loop counters are updated in the body of the for loop When the stop condition depend upon a method call When the stop condition depends on an object property, since such properties could change during the execution of the loop.
+for (int i = 0; i &lt; 10; i++) {
+  ...
+  i = i - 1; // Noncompliant; counter updated in the body of the loop
+  ...
+}
+for (int i = 0; i &lt; 10; i++) {...}","Reassigning loop variables can lead to hard-to-find bugs. Prevent or limit how these variables can be changed.In foreach-loops, configured by the foreachReassign property:  deny: Report any reassignment of the loop variable in the loop body. This is the default.  allow: Don’t check the loop variable.  firstOnly: Report any reassignments of the loop variable, except as the first statement in the loop body.          This is useful if some kind of normalization or clean-up of the value before using is permitted, but any other change of the variable is not.In for-loops, configured by the forReassign property:  deny: Report any reassignment of the control variable in the loop body. This is the default.  allow: Don’t check the control variable.  skip: Report any reassignments of the control variable, except conditional increments/decrements (++, --, +=, -=).          This prevents accidental reassignments or unconditional increments of the control variable.
+public class Foo {
+  private void foo() {
+    for (String s : listOfStrings()) {
+      s = s.trim(); // OK, when foreachReassign is ""firstOnly"" or ""allow""
+      doSomethingWith(s);
+      s = s.toUpper(); // OK, when foreachReassign is ""allow""
+      doSomethingElseWith(s);
+    }
+    for (int i=0; i &lt; 10; i++) {
+      if (check(i)) {
+        i++; // OK, when forReassign is ""skip"" or ""allow""
+      }
+      i = 5;  // OK, when forReassign is ""allow""
+      doSomethingWith(i);
+    }
+  }
+}"
+S1656,IdempotentOperations,"Variables should not be self-assigned
+There is no reason to re-assign a variable to itself. Either this statement is redundant and should be removed, or the re-assignment is a mistake and some other value or variable was intended for the assignment instead.   See  - Detect and remove code that has no effect or is never executed
+
+public void setName(String name) {
+  name = name;
+}
+public void setName(String name) {
+  this.name = name;
+}","Avoid idempotent operations - they have no effect.
+public class Foo {
+ public void bar() {
+  int x = 2;
+  x = x;
+ }
+}
+"
+S2147,IdenticalCatchBranches,"Catches should be combined
+Since Java 7 it has been possible to catch multiple exceptions at once. Therefore, when multiple catch blocks have the same code, they should be combined for better readability. Note that this rule is automatically disabled when the project's sonar.java.source is lower than 7.
+catch (IOException e) {
+  doCleanup();
+  logger.log(e);
+}
+catch (SQLException e) {  // Noncompliant
+  doCleanup();
+  logger.log(e);
+}
+catch (TimeoutException e) {  // Compliant; block contents are different
+  doCleanup();
+  throw e;
+}
+catch (IOException|SQLException e) {
+  doCleanup();
+  logger.log(e);
+}
+catch (TimeoutException e) {
+  doCleanup();
+  throw e;
+}","Identical catch branches use up vertical space and increase the complexity of code withoutadding functionality. It’s better style to collapse identical branches into a single multi-catchbranch.
+try {
+    // do something
+} catch (IllegalArgumentException e) {
+    throw e;
+} catch (IllegalStateException e) { // Can be collapsed into the previous block
+    throw e;
+}
+try {
+    // do something
+} catch (IllegalArgumentException | IllegalStateException e) { // This is better
+    throw e;
+}
+"
