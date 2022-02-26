@@ -1,5 +1,10 @@
 # Diff-Testing-01
-## TABLE 1: False negative bugs (about pattern implementation) in the examined static bug finders
+##Experimental Projects
+![image]( https://github.com/wuchiuwong/Diff-Testing-01/blob/master/image/word_cloud.png)
+We choose to use the [50K-C](http://mondego.ics.uci.edu/projects/jbf/) projects repository, which contains 50,000 Java projects crawled from GitHub. The repository contains a wide variety of java projects such as games, browsers, databases, web applications etc.
+
+## Find Issues
+### TABLE 1: False negative bugs (about pattern implementation) in the examined static bug finders
 Type | Bug pattern | Involved rules | issue url | status(fixed/confirmed/won't fix/await confirmation)
 :-: | :-: | :-: | :-: | :-:
 False negative about pattern implementation | P1. Fail in special data type | PMD: SingularField | [issue link](https://github.com/pmd/pmd/issues/2529) | await confirmation
@@ -32,7 +37,7 @@ False negative about pattern implementation | Others | PMD: AvoidThrowingNullPoi
 False negative about pattern implementation | Others | PMD: StringToString | [issue link](https://github.com/pmd/pmd/issues/2530) | fixed
 False negative about pattern implementation | Others | PMD: SimplifyBooleanExpressions | [issue link](https://github.com/pmd/pmd/issues/2585) | await confirmation
 
-## TABLE 2: False negative bugs (about rule definition) in the examined static bug finders.
+### TABLE 2: False negative bugs (about rule definition) in the examined static bug finders.
 Type | Bug pattern | Involved rules | issue url | status(fixed/confirmed/won't fix/await confirmation)
 :-: | :-: | :-: | :-: | :-:
 False negative bugs about rule definition | P8. Miss comparable method | PMD: UseLocaleWithCaseConversions | [issue link](https://github.com/pmd/pmd/issues/2584) | await confirmation
@@ -45,7 +50,7 @@ False negative bugs about rule definition | P9. Miss comparable data type or ope
 False negative bugs about rule definition | P10. Miss subclass or superclass | PMD: ReturnEmptyArrayRatherThanNull | [issue link](https://github.com/pmd/pmd/issues/2588) | await confirmation
 False negative bugs about rule definition | P10. Miss subclass or superclass | PMD: AvoidCatchingThrowable | [issue link](https://github.com/pmd/pmd/issues/2583) | await confirmation
 
-## TABLE 3: False positive bugs in the examined static bug finders
+### TABLE 3: False positive bugs in the examined static bug finders
 Type | Bug pattern | Involved rules | issue url | status(fixed/confirmed/won't fix/await confirmation)
 :-: | :-: | :-: | :-: | :-:
 False positive bugs in the examined static bug finders | P11. Poor handling of method with same name | PMD: UseNotifyAllInsteadOfNotify | [issue link](https://github.com/pmd/pmd/issues/2577) | fixed
