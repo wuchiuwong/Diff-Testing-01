@@ -6,6 +6,7 @@
 We choose to use the [50K-C](http://mondego.ics.uci.edu/projects/jbf/) projects repository, which contains 50,000 Java projects crawled from GitHub. The repository contains a wide variety of java projects such as games, browsers, databases, web applications etc.
 
 ## Find Issues
+We found a total of 45 issues, of which 19 have been fixed by the developer, 4 have been confirmed by the developer, 7 have been replied by the developer that they will not be fixed, and 15 are still waiting for confirmation from the developer.
 
 ### TABLE 1: False negative bugs (about pattern implementation) in the examined static bug finders
 Type | Bug pattern | Involved rules | issue url | status(fixed/confirmed/won't fix/await confirmation)
