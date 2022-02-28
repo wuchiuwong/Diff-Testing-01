@@ -1,6 +1,6 @@
 # Diff-Testing-01
 ## Find Issues
-We found a total of 45 issues, of which 19 have been fixed by the developer, 4 have been confirmed by the developer, 7 have been replied by the developer that they will not be fixed, and 15 are still waiting for confirmation from the developer.
+We found a total of 46 issues, of which 19 have been fixed by the developer, 4 have been confirmed by the developer, 7 have been replied by the developer that they will not be fixed, and 16 are still waiting for confirmation from the developer.
 
 ### TABLE 1: False negative bugs (about pattern implementation) in the examined static bug finders
 Type | Bug pattern | Involved rules | issue url | status(fixed/confirmed await fix/confirmed won't fix/await confirmation)
@@ -51,6 +51,7 @@ False negative bugs about rule definition | P10. Miss subclass or superclass | P
 ### TABLE 3: False positive bugs in the examined static bug finders
 Type | Bug pattern | Involved rules | issue url | status(fixed/confirmed await fix/confirmed won't fix/await confirmation)
 :-: | :-: | :-: | :-: | :-:
+False positive bugs in the examined static bug finders | P11. Poor handling of method with same name | PMD: SuspiciousEqualsMethodName | [issue link](https://github.com/pmd/pmd/issues/3813) | await confirmation
 False positive bugs in the examined static bug finders | P11. Poor handling of method with same name | PMD: UseNotifyAllInsteadOfNotify | [issue link](https://github.com/pmd/pmd/issues/2577) | fixed
 False positive bugs in the examined static bug finders | P11. Poor handling of method with same name | SonarQube: Object.finalize() should remain protected (versus public) when overriding | [issue link](https://community.sonarsource.com/t/false-positive-s1174-detected-override-of-finalize-with-arguments/26364) | fixed
 False positive bugs in the examined static bug finders | P12. Setting over-sized scope | PMD: AvoidThrowingNullPointerException | [issue link](https://github.com/pmd/pmd/issues/2580) | fixed
