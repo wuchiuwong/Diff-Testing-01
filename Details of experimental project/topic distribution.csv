@@ -1,11 +1,11 @@
-topic,precent,topic word 1,topic word 2,topic word 3,topic word 4,topic word 5,topic word 6,topic word 7,topic word 8,topic word 9,topic word 10
-topic 1,49.16%,engine,implementation,tools,gui,image,player,tree,junit,cloud,ai
-topic 2,6.74%,project,simple,web,service,ci,manager,simulator,png,build,db
-topic 3,7.4%,maven,plugin,client,javalabra,utils,search,database,programming,language,application
-topic 4,6.7%,game,example,algorithms,xml,map,time,space,testing,book,run
-topic 5,4.36%,demo,examples,editor,common,text,life,team,based,user,list
-topic 6,3.59%,test,projet,core,repository,bot,git,repo,calculator,se,github
-topic 7,7.17%,server,spring,data,framework,projects,rest,mvc,program,sim,source
-topic 8,4.57%,api,lib,euler,world,license,sdk,net,projeto,network,ant
-topic 9,5.49%,cs,parser,sample,library,algorithm,chat,file,patterns,jar,processing
-topic 10,4.82%,json,validator,schema,js,node,supports,browser,draft,ajv,fastest
+topic,topic word 1,topic word 2,topic word 3,topic word 4,topic word 5,topic word 6,topic word 7,topic word 8,topic word 9,topic word 10
+topic 1,engine,implementation,tools,gui,image,player,tree,junit,cloud,ai
+topic 2,project,simple,web,service,ci,manager,simulator,png,build,db
+topic 3,maven,plugin,client,javalabra,utils,search,database,programming,language,application
+topic 4,game,example,algorithms,xml,map,time,space,testing,book,run
+topic 5,demo,examples,editor,common,text,life,team,based,user,list
+topic 6,test,projet,core,repository,bot,git,repo,calculator,se,github
+topic 7,server,spring,data,framework,projects,rest,mvc,program,sim,source
+topic 8,api,lib,euler,world,license,sdk,net,projeto,network,ant
+topic 9,cs,parser,sample,library,algorithm,chat,file,patterns,jar,processing
+topic 10,json,validator,schema,js,node,supports,browser,draft,ajv,fastest
